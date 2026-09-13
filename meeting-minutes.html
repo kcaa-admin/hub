@@ -70,22 +70,51 @@
   .meeting-body { display: none; padding: 4px 16px 18px; border-top: 1px solid var(--line); }
   .meeting-card.open .meeting-body { display: block; }
 
-  .mb-section { margin-top: 16px; }
-  .mb-h3 { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-faint); margin: 0 0 8px; }
-  .attend-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .attend-chip { font-size: 12px; padding: 3px 10px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); color: var(--ink-soft); }
-  .attend-chip.present { color: var(--green); border-color: color-mix(in srgb, var(--green) 35%, var(--line)); background: var(--green-soft); }
-  .row-list { display: flex; flex-direction: column; gap: 7px; }
-  .row-item { font-size: 13px; color: var(--ink); padding: 8px 10px; background: var(--bg); border-radius: 8px; }
-  .row-item .tag { font-weight: 800; color: var(--blue); margin-right: 6px; }
-  .row-item .sub { color: var(--ink-soft); }
-  .action-item { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; padding: 8px 10px; background: var(--bg); border-radius: 8px; }
-  .action-item input[type="checkbox"] { margin-top: 2px; accent-color: var(--green); flex-shrink: 0; }
-  .action-item.done .a-text { text-decoration: line-through; color: var(--ink-faint); }
-  .due-badge { font-size: 10.5px; font-weight: 800; color: var(--red); background: var(--red-soft); border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+  .mb-section { margin-top: 20px; }
+  .mb-h3 { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-faint); margin: 0 0 10px; }
+
+  /* attendance table */
+  .attend-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .attend-table th { text-align: left; font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-faint); padding: 0 10px 7px; border-bottom: 1px solid var(--line); }
+  .attend-table td { padding: 7px 10px; border-bottom: 1px solid var(--line); color: var(--ink); vertical-align: top; }
+  .attend-table tr:last-child td { border-bottom: none; }
+  .attend-table td.att-name { font-weight: 700; white-space: nowrap; }
+  .attend-table td.att-roles { color: var(--ink-soft); }
+  .att-yn { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 6px; font-size: 11px; font-weight: 800; }
+  .att-yn.y { background: var(--green-soft); color: var(--green); }
+  .att-yn.n { background: var(--red-soft); color: var(--red); }
+
+  /* agenda / old business category grid */
+  .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .cat-card { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px 13px; }
+  .cat-card h4 { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--blue); margin: 0 0 8px; }
+  .cat-item { font-size: 13px; color: var(--ink); margin-bottom: 8px; }
+  .cat-item:last-child { margin-bottom: 0; }
+  .cat-item .sub { display: block; color: var(--ink-soft); font-size: 12px; margin-top: 2px; }
+
+  /* action items */
+  .action-list { display: flex; flex-direction: column; gap: 8px; }
+  .action-item { display: flex; gap: 12px; align-items: flex-start; font-size: 13px; padding: 10px 12px; background: var(--bg); border-radius: 8px; }
+  .action-item .a-main { flex: 1; min-width: 0; }
+  .action-item .a-title { font-weight: 700; color: var(--ink); }
+  .action-item .a-title .tag { font-weight: 800; color: var(--blue); margin-right: 6px; }
+  .action-item .a-desc { color: var(--ink-soft); font-size: 12.5px; margin-top: 3px; }
+  .action-item .a-assignee { color: var(--ink-faint); font-size: 12px; margin-top: 3px; }
+  .due-badge { font-size: 10.5px; font-weight: 800; color: var(--red); background: var(--red-soft); border-radius: 999px; padding: 2px 8px; white-space: nowrap; flex-shrink: 0; }
+  .status-toggle { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 9px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; border: none; font-family: inherit; cursor: default; }
+  .status-toggle.pending { background: var(--line); color: var(--ink-faint); }
+  .status-toggle.in-progress { background: var(--blue-soft); color: var(--blue); }
+  .status-toggle.complete { background: var(--green-soft); color: var(--green); }
+  button.status-toggle { cursor: pointer; }
+  button.status-toggle:hover, button.status-toggle:focus-visible { filter: brightness(0.94); }
+
   .next-callout { background: var(--blue-soft); border: 1px solid color-mix(in srgb, var(--blue) 30%, var(--line)); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: var(--ink); }
   .next-callout strong { color: var(--blue); }
-  .card-actions { margin-top: 14px; }
+  .card-actions { margin-top: 16px; display: flex; gap: 8px; }
+  .btn.danger { color: var(--red); }
+  .btn.danger:hover, .btn.danger:focus-visible { background: var(--red-soft); }
+  .carry-note { background: var(--blue-soft); border: 1px solid color-mix(in srgb, var(--blue) 30%, var(--line)); border-radius: 10px; padding: 10px 14px; font-size: 12.5px; color: var(--ink); margin-bottom: 16px; }
+  .carry-note strong { color: var(--blue); }
 
   .empty-state { background: var(--surface); border: 1px dashed var(--line); border-radius: 12px; padding: 28px 20px; text-align: center; color: var(--ink-faint); font-size: 13.5px; }
 
@@ -106,7 +135,7 @@
   .edit-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; align-items: end; padding: 10px 0; border-bottom: 1px solid var(--line); }
   .edit-row:last-of-type { border-bottom: none; }
   .edit-row .full { grid-column: 1 / -1; }
-  .edit-row input[type="text"], .edit-row input[type="date"] { width: 100%; font: inherit; font-size: 13.5px; padding: 8px 9px; border-radius: 7px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+  .edit-row input[type="text"], .edit-row input[type="date"], .edit-row select { width: 100%; font: inherit; font-size: 13.5px; padding: 8px 9px; border-radius: 7px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
   .edit-row .checks { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-soft); }
   .row-remove { background: none; border: none; color: var(--ink-faint); font-size: 12px; font-weight: 700; cursor: pointer; padding: 6px 4px; justify-self: start; }
   .row-remove:hover { color: var(--red); }
@@ -183,8 +212,11 @@
       <div class="editor-toolbar">
         <h2 style="border:none;padding:0;margin:0;flex:1;">Editing &mdash; <span id="editingDateLabel"></span></h2>
         <span class="save-indicator" id="saveIndicator"></span>
+        <button class="btn small ghost danger" id="deleteMeetingBtn" style="display:none;">Delete meeting</button>
         <button class="btn small ghost" id="closeEditorBtn">Close</button>
       </div>
+
+      <div class="carry-note" id="carryNote" style="display:none;"></div>
 
       <div class="edit-card" style="margin-bottom:16px;">
         <div class="meta-grid">
@@ -280,11 +312,37 @@
   }
   function genId() { return "m_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 
+  // ---- fixed agenda/old-business categories (matches the board's committee areas) ----
+  var CATEGORIES = ["Golf", "Baseball", "Basketball", "Hockey", "Social Media & Comms", "Governance", "New Business"];
+  var CATEGORY_MATCHERS = [
+    { label: "Golf", test: /golf/i },
+    { label: "Baseball", test: /base ?ball/i },
+    { label: "Basketball", test: /basket ?ball/i },
+    { label: "Hockey", test: /hockey/i },
+    { label: "Social Media & Comms", test: /social media|comms|communications?/i },
+    { label: "Governance", test: /governance/i },
+    { label: "New Business", test: /^new(\s|$)|new biz/i }
+  ];
+  function categoryBucket(raw) {
+    var s = String(raw == null ? "" : raw).trim();
+    for (var i = 0; i < CATEGORY_MATCHERS.length; i++) {
+      if (CATEGORY_MATCHERS[i].test.test(s)) return CATEGORY_MATCHERS[i].label;
+    }
+    return "Other";
+  }
+  function actionStatus(a) {
+    if (a.status === "pending" || a.status === "in-progress" || a.status === "complete") return a.status;
+    return a.done ? "complete" : "pending";
+  }
+  var STATUS_LABEL = { pending: "Pending", "in-progress": "In progress", complete: "Complete" };
+  var STATUS_CYCLE = { pending: "in-progress", "in-progress": "complete", complete: "pending" };
+
   // ---- state -----------------------------------------------------------
   var meetings = [];      // all meeting docs
   var draft = null;       // the meeting object currently open in the editor
   var draftId = null;
   var saveTimer = null;
+  var openMeetingIds = {}; // which archive cards are expanded, preserved across re-renders
 
   // ================= ARCHIVE RENDERING =================
   function renderArchive() {
@@ -317,7 +375,10 @@
 
     list.querySelectorAll(".meeting-summary").forEach(function (el) {
       el.addEventListener("click", function () {
-        el.closest(".meeting-card").classList.toggle("open");
+        var card = el.closest(".meeting-card");
+        var id = card.getAttribute("data-meeting-id");
+        var isOpen = card.classList.toggle("open");
+        if (isOpen) openMeetingIds[id] = true; else delete openMeetingIds[id];
       });
     });
     list.querySelectorAll("[data-edit-id]").forEach(function (btn) {
@@ -326,22 +387,83 @@
         openEditor(btn.getAttribute("data-edit-id"));
       });
     });
+    list.querySelectorAll("[data-delete-id]").forEach(function (btn) {
+      btn.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+        deleteMeeting(btn.getAttribute("data-delete-id"));
+      });
+    });
+    list.querySelectorAll("[data-toggle-status]").forEach(function (btn) {
+      btn.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+        cycleActionStatus(btn.getAttribute("data-toggle-status"), +btn.getAttribute("data-toggle-idx"));
+      });
+    });
   }
 
-  function renderItemLine(item) {
+  function cycleActionStatus(meetingId, idx) {
+    var m = meetings.find(function (x) { return x.id === meetingId; });
+    if (!m || !m.actionItems || !m.actionItems[idx]) return;
+    var next = STATUS_CYCLE[actionStatus(m.actionItems[idx])];
+    m.actionItems[idx] = Object.assign({}, m.actionItems[idx], { status: next });
+    delete m.actionItems[idx].done;
+
+    if (localMode || !firestoreDb) {
+      renderArchive();
+      return;
+    }
+    var payload = JSON.parse(JSON.stringify(m));
+    delete payload.id;
+    fsApi.setDoc(fsApi.doc(firestoreDb, "meeting_minutes", meetingId), payload).catch(function (e) {
+      console.error("status update failed", e);
+    });
+  }
+
+  function legacyRowFields(raw) {
+    // legacy imported rows are raw CSV strings shaped "<row#>,<category>,<text...>"
+    if (typeof raw !== "string") return null;
+    var fields = raw.split(",");
+    if (fields.length >= 2 && /^\d+$/.test(fields[0].trim())) return fields;
+    return null;
+  }
+  function rawCategory(raw) {
+    if (raw && typeof raw === "object") return raw.category || "";
+    var fields = legacyRowFields(raw);
+    return fields ? fields[1].trim() : "";
+  }
+  function itemText(item) {
     // item is either a raw string (imported legacy data) or a {category,item,notes} object
     if (typeof item === "string") {
-      return '<div class="row-item">' + esc(item) + "</div>";
+      var fields = legacyRowFields(item);
+      if (fields) return { text: fields.slice(2).join(",").trim() || item, notes: "" };
+      return { text: item, notes: "" };
     }
-    if (item && typeof item === "object") {
-      var bits = [];
-      if (item.category) bits.push('<span class="tag">' + esc(item.category) + "</span>");
-      if (item.item) bits.push(esc(item.item));
-      var line = bits.join(" ");
-      if (item.notes) line += ' &mdash; <span class="sub">' + esc(item.notes) + "</span>";
-      return '<div class="row-item">' + line + "</div>";
-    }
-    return "";
+    if (item && typeof item === "object") return { text: item.item || "", notes: item.notes || "" };
+    return { text: "", notes: "" };
+  }
+
+  function renderCategoryGrid(items) {
+    if (!items || !items.length) return "";
+    var order = CATEGORIES.concat(["Other"]);
+    var buckets = {};
+    items.forEach(function (raw) {
+      var bucket = categoryBucket(rawCategory(raw));
+      (buckets[bucket] = buckets[bucket] || []).push(itemText(raw));
+    });
+    var html = '<div class="cat-grid">';
+    order.forEach(function (label) {
+      if (!buckets[label] || !buckets[label].length) return;
+      html += '<div class="cat-card"><h4>' + esc(label) + "</h4>";
+      buckets[label].forEach(function (it) {
+        if (!it.text && !it.notes) return;
+        html += '<div class="cat-item">' + esc(it.text);
+        if (it.notes) html += '<span class="sub">' + esc(it.notes) + "</span>";
+        html += "</div>";
+      });
+      html += "</div>";
+    });
+    html += "</div>";
+    return html;
   }
 
   function renderMeetingCard(m) {
@@ -352,37 +474,37 @@
     var body = "";
 
     if ((m.attendance || []).length) {
-      body += '<div class="mb-section"><div class="mb-h3">Attendance (' + present + "/" + total + ' present)</div><div class="attend-chips">';
+      body += '<div class="mb-section"><div class="mb-h3">Attendance (' + present + "/" + total + ' present)</div>';
+      body += '<table class="attend-table"><thead><tr><th>Name</th><th>Attendance</th><th>Role(s)</th></tr></thead><tbody>';
       m.attendance.forEach(function (a) {
-        body += '<span class="attend-chip' + (a.present ? " present" : "") + '">' + esc(a.name) + (a.roles && a.roles.length ? " &middot; " + esc(a.roles.join(", ")) : "") + "</span>";
+        body += "<tr><td class=\"att-name\">" + esc(a.name) + "</td><td>" +
+          '<span class="att-yn ' + (a.present ? "y" : "n") + '">' + (a.present ? "Y" : "N") + "</span>" +
+          '</td><td class="att-roles">' + esc((a.roles || []).join(", ") || "—") + "</td></tr>";
       });
-      body += "</div></div>";
+      body += "</tbody></table></div>";
     }
 
     if ((m.agendaDiscussion || []).length) {
-      body += '<div class="mb-section"><div class="mb-h3">Agenda &amp; discussion</div><div class="row-list">';
-      m.agendaDiscussion.forEach(function (it) { body += renderItemLine(it); });
-      body += "</div></div>";
+      body += '<div class="mb-section"><div class="mb-h3">Agenda &amp; discussion</div>' + renderCategoryGrid(m.agendaDiscussion) + "</div>";
     }
 
     if ((m.oldBusiness || []).length) {
-      body += '<div class="mb-section"><div class="mb-h3">Old business</div><div class="row-list">';
-      m.oldBusiness.forEach(function (it) { body += renderItemLine(it); });
-      body += "</div></div>";
+      body += '<div class="mb-section"><div class="mb-h3">Old business</div>' + renderCategoryGrid(m.oldBusiness) + "</div>";
     }
 
     if ((m.actionItems || []).length) {
-      body += '<div class="mb-section"><div class="mb-h3">Action items</div><div class="row-list">';
-      m.actionItems.forEach(function (it) {
-        var doneCls = it.done ? " done" : "";
-        body += '<div class="action-item' + doneCls + '"><input type="checkbox" disabled' + (it.done ? " checked" : "") + '>';
-        body += '<span class="a-text" style="flex:1;">';
-        if (it.category) body += '<span class="tag">' + esc(it.category) + "</span> ";
-        body += esc(it.action || "");
-        if (it.assignedTo) body += ' &mdash; <span class="sub">' + esc(it.assignedTo) + "</span>";
-        if (it.notes) body += '<br><span class="sub">' + esc(it.notes) + "</span>";
-        body += "</span>";
-        if (it.dueDate) body += '<span class="due-badge">' + esc(it.dueDate) + "</span>";
+      body += '<div class="mb-section"><div class="mb-h3">Action items</div><div class="action-list">';
+      m.actionItems.forEach(function (it, idx) {
+        var status = actionStatus(it);
+        body += '<div class="action-item">';
+        body += '<div class="a-main"><div class="a-title">';
+        if (it.category) body += '<span class="tag">' + esc(it.category) + "</span>";
+        body += esc(it.action || "") + "</div>";
+        if (it.notes) body += '<div class="a-desc">' + esc(it.notes) + "</div>";
+        if (it.assignedTo) body += '<div class="a-assignee">Assigned to ' + esc(it.assignedTo) + "</div>";
+        body += "</div>";
+        if (it.dueDate) body += '<span class="due-badge">Due ' + esc(it.dueDate) + "</span>";
+        body += '<button class="status-toggle ' + status + '" data-toggle-status="' + esc(m.id) + '" data-toggle-idx="' + idx + '" title="Click to change status">' + STATUS_LABEL[status] + "</button>";
         body += "</div>";
       });
       body += "</div></div>";
@@ -396,10 +518,11 @@
       body += "</div></div>";
     }
 
-    body += '<div class="card-actions"><button class="btn small ghost" data-edit-id="' + esc(m.id) + '">Edit this meeting</button></div>';
+    body += '<div class="card-actions"><button class="btn small ghost" data-edit-id="' + esc(m.id) + '">Edit this meeting</button>' +
+      '<button class="btn small ghost danger" data-delete-id="' + esc(m.id) + '">Delete</button></div>';
 
     return (
-      '<div class="meeting-card">' +
+      '<div class="meeting-card' + (openMeetingIds[m.id] ? " open" : "") + '" data-meeting-id="' + esc(m.id) + '">' +
       '<div class="meeting-summary">' +
       '<span class="date">' + fmtDate(m.date) + "</span>" +
       '<span class="meta">' + total + " attendee" + (total === 1 ? "" : "s") + (m.actionItems && m.actionItems.length ? " &middot; " + m.actionItems.length + " action items" : "") + "</span>" +
@@ -442,13 +565,42 @@
 
   function normalizeStructRow(it) {
     // convert legacy raw-string rows into editable {category,item,notes} objects
-    if (typeof it === "string") return { category: "", item: it, notes: "" };
+    if (typeof it === "string") {
+      var text = itemText(it);
+      return { category: categoryBucket(rawCategory(it)) === "Other" ? "" : categoryBucket(rawCategory(it)), item: text.text, notes: "" };
+    }
     return it;
+  }
+
+  function latestMeeting() {
+    if (!meetings.length) return null;
+    return meetings.slice().sort(function (a, b) { return (b.date || "").localeCompare(a.date || ""); })[0];
+  }
+
+  function buildCarriedMeeting(last) {
+    var carried = blankMeeting();
+    carried.date = (last.nextMeeting && last.nextMeeting.date) || carried.date;
+    carried.attendance = (last.attendance || []).map(function (a) {
+      return { name: a.name || "", present: true, roles: (a.roles || []).slice() };
+    });
+    var agenda = (last.agendaDiscussion || []).map(normalizeStructRow);
+    var oldBiz = (last.oldBusiness || []).map(normalizeStructRow);
+    carried.oldBusiness = agenda.concat(oldBiz).map(function (it) {
+      return { category: it.category || "", item: it.item || "", notes: it.notes || "" };
+    });
+    carried.actionItems = (last.actionItems || []).filter(function (a) {
+      return actionStatus(a) !== "complete";
+    }).map(function (a) {
+      return { action: a.action || "", category: a.category || "", assignedTo: a.assignedTo || "", dueDate: a.dueDate || "", notes: a.notes || "", status: actionStatus(a) };
+    });
+    carried.carriedFrom = last.date;
+    return carried;
   }
 
   function startNewMeeting() {
     draftId = null;
-    draft = blankMeeting();
+    var last = latestMeeting();
+    draft = last ? buildCarriedMeeting(last) : blankMeeting();
     showEditorForm();
   }
 
@@ -467,6 +619,15 @@
     renderStructRows("oldBizRows", draft.oldBusiness, "oldBusiness");
     renderActionRows();
     setSaveIndicator("");
+    document.getElementById("deleteMeetingBtn").style.display = draftId ? "" : "none";
+    var carryNote = document.getElementById("carryNote");
+    if (draft.carriedFrom) {
+      carryNote.style.display = "block";
+      carryNote.innerHTML = "<strong>Prefilled from " + fmtDate(draft.carriedFrom) + ".</strong> Attendance, open action items and unresolved agenda/old business carried forward automatically — review and adjust before saving.";
+    } else {
+      carryNote.style.display = "none";
+      carryNote.innerHTML = "";
+    }
   }
 
   function closeEditor() {
@@ -506,13 +667,23 @@
     });
   }
 
+  function categoryOptions(selected) {
+    var opts = CATEGORIES.concat(["Other"]);
+    var found = opts.indexOf(selected) !== -1;
+    var html = !found ? '<option value="' + esc(selected) + '">' + esc(selected || "— choose —") + "</option>" : "";
+    opts.forEach(function (c) {
+      html += '<option value="' + esc(c) + '"' + (c === selected ? " selected" : "") + ">" + esc(c) + "</option>";
+    });
+    return html;
+  }
+
   function renderStructRows(wrapId, arr, field) {
     var wrap = document.getElementById(wrapId);
     wrap.innerHTML = arr.map(function (row, i) {
       row = normalizeStructRow(row);
       return (
         '<div class="edit-row">' +
-        '<div><label style="font-size:10px;color:var(--ink-faint);">Category</label><input type="text" data-row="' + i + '" data-f="category" value="' + esc(row.category) + '"></div>' +
+        '<div><label style="font-size:10px;color:var(--ink-faint);">Category</label><select data-row="' + i + '" data-f="category">' + categoryOptions(row.category) + "</select></div>" +
         '<div class="full"><label style="font-size:10px;color:var(--ink-faint);">Item</label><input type="text" data-row="' + i + '" data-f="item" value="' + esc(row.item) + '"></div>' +
         '<div class="full"><label style="font-size:10px;color:var(--ink-faint);">Notes</label><input type="text" data-row="' + i + '" data-f="notes" value="' + esc(row.notes) + '"></div>' +
         '<button class="row-remove" data-remove-row="' + i + '">Remove</button>' +
@@ -520,7 +691,7 @@
       );
     }).join("");
     wrap.querySelectorAll("[data-row]").forEach(function (el) {
-      el.addEventListener("input", function () {
+      el.addEventListener(el.tagName === "SELECT" ? "change" : "input", function () {
         var i = +el.getAttribute("data-row"), f = el.getAttribute("data-f");
         arr[i] = normalizeStructRow(arr[i]);
         arr[i][f] = el.value;
@@ -539,23 +710,28 @@
   function renderActionRows() {
     var wrap = document.getElementById("actionRows");
     wrap.innerHTML = draft.actionItems.map(function (a, i) {
+      var status = actionStatus(a);
       return (
         '<div class="edit-row">' +
+        '<div class="full"><label style="font-size:10px;color:var(--ink-faint);">What needs to happen</label><input type="text" data-act="' + i + '" data-f="action" value="' + esc(a.action) + '" placeholder="Action item"></div>' +
+        '<div class="full"><label style="font-size:10px;color:var(--ink-faint);">Description</label><input type="text" data-act="' + i + '" data-f="notes" value="' + esc(a.notes) + '" placeholder="Brief description"></div>' +
         '<div><label style="font-size:10px;color:var(--ink-faint);">Category</label><input type="text" data-act="' + i + '" data-f="category" value="' + esc(a.category) + '"></div>' +
-        '<div class="full"><label style="font-size:10px;color:var(--ink-faint);">Action</label><input type="text" data-act="' + i + '" data-f="action" value="' + esc(a.action) + '"></div>' +
         '<div><label style="font-size:10px;color:var(--ink-faint);">Assigned to</label><input type="text" data-act="' + i + '" data-f="assignedTo" value="' + esc(a.assignedTo) + '"></div>' +
         '<div><label style="font-size:10px;color:var(--ink-faint);">Due date</label><input type="text" data-act="' + i + '" data-f="dueDate" value="' + esc(a.dueDate) + '" placeholder="e.g. Oct 3"></div>' +
-        '<div class="full"><label style="font-size:10px;color:var(--ink-faint);">Notes</label><input type="text" data-act="' + i + '" data-f="notes" value="' + esc(a.notes) + '"></div>' +
-        '<div class="checks"><label><input type="checkbox" data-act="' + i + '" data-f="done"' + (a.done ? " checked" : "") + "> Done</label></div>" +
+        '<div><label style="font-size:10px;color:var(--ink-faint);">Status</label><select data-act="' + i + '" data-f="status">' +
+        '<option value="pending"' + (status === "pending" ? " selected" : "") + ">Pending</option>" +
+        '<option value="in-progress"' + (status === "in-progress" ? " selected" : "") + ">In progress</option>" +
+        '<option value="complete"' + (status === "complete" ? " selected" : "") + ">Complete</option>" +
+        "</select></div>" +
         '<button class="row-remove" data-remove-act="' + i + '">Remove</button>' +
         "</div>"
       );
     }).join("");
     wrap.querySelectorAll("[data-act]").forEach(function (el) {
-      el.addEventListener("input", function () {
+      el.addEventListener(el.tagName === "SELECT" ? "change" : "input", function () {
         var i = +el.getAttribute("data-act"), f = el.getAttribute("data-f");
-        if (f === "done") draft.actionItems[i].done = el.checked;
-        else draft.actionItems[i][f] = el.value;
+        draft.actionItems[i][f] = el.value;
+        if (f === "status") delete draft.actionItems[i].done;
         scheduleSave();
       });
     });
@@ -584,7 +760,7 @@
     scheduleSave();
   });
   document.getElementById("addActionBtn").addEventListener("click", function () {
-    draft.actionItems.push({ action: "", category: "", assignedTo: "", dueDate: "", notes: "", done: false });
+    draft.actionItems.push({ action: "", category: "", assignedTo: "", dueDate: "", notes: "", status: "pending" });
     renderActionRows();
     scheduleSave();
   });
@@ -606,6 +782,9 @@
 
   document.getElementById("newMeetingBtn").addEventListener("click", startNewMeeting);
   document.getElementById("closeEditorBtn").addEventListener("click", closeEditor);
+  document.getElementById("deleteMeetingBtn").addEventListener("click", function () {
+    if (draftId) deleteMeeting(draftId);
+  });
 
   document.getElementById("tabArchiveBtn").addEventListener("click", function () { switchTab("archive"); });
   document.getElementById("tabEditorBtn").addEventListener("click", function () { switchTab("editor"); });
@@ -645,6 +824,7 @@
       }
       renderArchive();
       setSaveIndicator("saved");
+      document.getElementById("deleteMeetingBtn").style.display = "";
       return;
     }
 
@@ -652,12 +832,29 @@
       fsApi.addDoc(fsApi.collection(firestoreDb, "meeting_minutes"), payload).then(function (ref) {
         draftId = ref.id;
         setSaveIndicator("saved");
+        document.getElementById("deleteMeetingBtn").style.display = "";
       }).catch(function (e) { console.error("create failed", e); });
     } else {
       fsApi.setDoc(fsApi.doc(firestoreDb, "meeting_minutes", draftId), payload).then(function () {
         setSaveIndicator("saved");
       }).catch(function (e) { console.error("save failed", e); });
     }
+  }
+
+  function deleteMeeting(id) {
+    var m = meetings.find(function (x) { return x.id === id; });
+    if (!m) return;
+    if (!window.confirm("Delete the minutes for " + fmtDate(m.date).replace(/&mdash;/, "—") + "? This can't be undone.")) return;
+
+    if (localMode || !firestoreDb) {
+      meetings = meetings.filter(function (x) { return x.id !== id; });
+      if (draftId === id) closeEditor();
+      renderArchive();
+      return;
+    }
+    fsApi.deleteDoc(fsApi.doc(firestoreDb, "meeting_minutes", id)).then(function () {
+      if (draftId === id) closeEditor();
+    }).catch(function (e) { console.error("delete failed", e); });
   }
 
   // ---- historical import -------------------------------------------
