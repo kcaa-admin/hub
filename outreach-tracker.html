@@ -260,12 +260,12 @@
   // unconfigured project degrades gracefully into local mode instead of
   // breaking the whole page.
   var firebaseConfig = {
-    apiKey: "REPLACE_WITH_YOUR_API_KEY",
-    authDomain: "REPLACE_WITH_YOUR_PROJECT.firebaseapp.com",
-    projectId: "REPLACE_WITH_YOUR_PROJECT_ID",
-    storageBucket: "REPLACE_WITH_YOUR_PROJECT.appspot.com",
-    messagingSenderId: "REPLACE_WITH_YOUR_SENDER_ID",
-    appId: "REPLACE_WITH_YOUR_APP_ID"
+    apiKey: "AIzaSyCTI8_wse6mW5O5KVP362eNQFpHQRiz_64",
+    authDomain: "kcaa-hub.firebaseapp.com",
+    projectId: "kcaa-hub",
+    storageBucket: "kcaa-hub.firebasestorage.app",
+    messagingSenderId: "36937011424",
+    appId: "1:36937011424:web:825b1d1a1b23e82d514085"
   };
   var fsApi = null; // populated with the firebase-firestore module namespace once loaded
 
@@ -666,8 +666,8 @@
     // this list is small and low-stakes, so the Firestore rules are just
     // left open (see the setup guide) rather than adding a sign-in step.
     Promise.all([
-      import("https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"),
-      import("https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js")
+      import("https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js")
     ]).then(function (mods) {
       var appApi = mods[0], firestoreApi = mods[1];
       fsApi = firestoreApi;
