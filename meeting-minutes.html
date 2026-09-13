@@ -237,13 +237,18 @@
       </div>
 
       <div class="edit-card" style="margin-bottom:16px;">
+        <div class="mb-h3">Pending action items <span style="font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink-faint);">&mdash; carried in from last time, for reference while you build today's agenda</span></div>
+        <div id="pendingActionsSummary"></div>
+      </div>
+
+      <div class="edit-card" style="margin-bottom:16px;">
         <div class="mb-h3">Agenda &amp; discussion</div>
         <div id="agendaRows"></div>
         <button class="add-row-btn" id="addAgendaBtn">+ Add agenda item</button>
       </div>
 
       <div class="edit-card" style="margin-bottom:16px;">
-        <div class="mb-h3">Old business (carried from previous meeting)</div>
+        <div class="mb-h3">Old business</div>
         <div id="oldBizRows"></div>
         <button class="add-row-btn" id="addOldBizBtn">+ Add item</button>
       </div>
@@ -618,29 +623,14 @@
     return meetings.slice().sort(function (a, b) { return (b.date || "").localeCompare(a.date || ""); })[0];
   }
 
-  function summarizeCarry(text) {
-    // carrying an item forward to the next meeting's old business should leave a short
-    // recap line, not the full discussion transcript — trim to a headline length
-    var s = String(text == null ? "" : text).replace(/\s+/g, " ").trim();
-    var limit = 100;
-    if (s.length <= limit) return s;
-    var cut = s.slice(0, limit);
-    var lastSpace = cut.lastIndexOf(" ");
-    if (lastSpace > 40) cut = cut.slice(0, lastSpace);
-    return cut.replace(/[,;.\s]+$/, "") + "…";
-  }
-
   function buildCarriedMeeting(last) {
     var carried = blankMeeting();
     carried.date = (last.nextMeeting && last.nextMeeting.date) || carried.date;
     carried.attendance = (last.attendance || []).map(function (a) {
       return { name: a.name || "", present: true, roles: (a.roles || []).slice() };
     });
-    var agenda = (last.agendaDiscussion || []).map(normalizeStructRow);
-    var oldBiz = (last.oldBusiness || []).map(normalizeStructRow);
-    carried.oldBusiness = agenda.concat(oldBiz).map(function (it) {
-      return { category: it.category || "", item: summarizeCarry(it.item), notes: "" };
-    });
+    // old business starts empty on purpose — it's filled in during the meeting,
+    // informed by the pending action items summary shown above the agenda
     carried.actionItems = (last.actionItems || []).filter(function (a) {
       return actionStatus(a) !== "complete";
     }).map(function (a) {
@@ -668,6 +658,7 @@
     document.getElementById("f_nm_location").value = (draft.nextMeeting && draft.nextMeeting.location) || "";
     document.getElementById("f_nm_objectives").value = (draft.nextMeeting && draft.nextMeeting.objectives) || "";
     renderAttendanceRows();
+    renderPendingActionsSummary();
     renderStructRows("agendaRows", draft.agendaDiscussion, "agendaDiscussion");
     renderStructRows("oldBizRows", draft.oldBusiness, "oldBusiness");
     renderActionRows();
@@ -676,7 +667,7 @@
     var carryNote = document.getElementById("carryNote");
     if (draft.carriedFrom) {
       carryNote.style.display = "block";
-      carryNote.innerHTML = "<strong>Prefilled from " + fmtDate(draft.carriedFrom) + ".</strong> Attendance, open action items and unresolved agenda/old business carried forward automatically — review and adjust before saving.";
+      carryNote.innerHTML = "<strong>Prefilled from " + fmtDate(draft.carriedFrom) + ".</strong> Attendance and open action items carried forward automatically — old business starts empty, add to it during the meeting as items come up.";
     } else {
       carryNote.style.display = "none";
       carryNote.innerHTML = "";
@@ -760,6 +751,40 @@
     });
   }
 
+  function renderPendingActionsSummary() {
+    var wrap = document.getElementById("pendingActionsSummary");
+    if (!wrap) return;
+    var pending = (draft.actionItems || []).filter(function (a) { return actionStatus(a) !== "complete"; });
+    if (!pending.length) {
+      wrap.innerHTML = '<p style="font-size:13px;color:var(--ink-faint);margin:0;">No pending action items carried in.</p>';
+      return;
+    }
+    var sorted = pending.map(function (it, idx) { return { it: it, idx: idx, due: parseDueDate(it.dueDate, draft.date) }; });
+    sorted.sort(function (a, b) {
+      if (a.due && b.due) return a.due - b.due;
+      if (a.due) return -1;
+      if (b.due) return 1;
+      return a.idx - b.idx;
+    });
+    var html = '<div class="action-list">';
+    sorted.forEach(function (entry) {
+      var it = entry.it;
+      var status = actionStatus(it);
+      html += '<div class="action-item">';
+      html += '<div class="a-main"><div class="a-title">';
+      if (it.category) html += '<span class="tag">' + esc(actionCategoryLabel(it.category)) + "</span>";
+      html += esc(it.action || "") + "</div>";
+      if (it.notes) html += '<div class="a-desc">' + esc(it.notes) + "</div>";
+      if (it.assignedTo) html += '<div class="a-assignee">Assigned to ' + esc(it.assignedTo) + "</div>";
+      html += "</div>";
+      if (it.dueDate) html += '<span class="due-badge">Due ' + esc(it.dueDate) + "</span>";
+      html += '<span class="status-toggle ' + status + '">' + STATUS_LABEL[status] + "</span>";
+      html += "</div>";
+    });
+    html += "</div>";
+    wrap.innerHTML = html;
+  }
+
   function renderActionRows() {
     var wrap = document.getElementById("actionRows");
     wrap.innerHTML = draft.actionItems.map(function (a, i) {
@@ -785,6 +810,7 @@
         var i = +el.getAttribute("data-act"), f = el.getAttribute("data-f");
         draft.actionItems[i][f] = el.value;
         if (f === "status") delete draft.actionItems[i].done;
+        renderPendingActionsSummary();
         scheduleSave();
       });
     });
@@ -792,6 +818,7 @@
       el.addEventListener("click", function () {
         draft.actionItems.splice(+el.getAttribute("data-remove-act"), 1);
         renderActionRows();
+        renderPendingActionsSummary();
         scheduleSave();
       });
     });
@@ -815,6 +842,7 @@
   document.getElementById("addActionBtn").addEventListener("click", function () {
     draft.actionItems.push({ action: "", category: "", assignedTo: "", dueDate: "", notes: "", status: "pending" });
     renderActionRows();
+    renderPendingActionsSummary();
     scheduleSave();
   });
 
