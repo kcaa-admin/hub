@@ -1,6 +1,6 @@
 # KCAA Hub — GitHub Pages Setup Guide
 
-This folder is a complete, self-contained static site: the Hub, the Roadmap, the Volunteer Program plan, the Brand Guide, the Recruitment one-pager, and the Outreach Tracker. All the cross-links between them already point at each other by filename (`index.html`, `roadmap.html`, etc.) instead of claude.ai links, so the whole thing works the moment it's hosted anywhere that serves static files — including GitHub Pages, for free, under your own domain if you want one.
+This folder is a complete, self-contained static site: the Hub, the Roadmap, the Volunteer Program plan, the Brand Guide, the Recruitment intro material, and the Outreach Tracker. All the cross-links between them already point at each other by filename (`index.html`, `roadmap.html`, etc.) instead of claude.ai links, so the whole thing works the moment it's hosted anywhere that serves static files — including GitHub Pages, for free, under your own domain if you want one.
 
 There are two parts to this walkthrough:
 
@@ -142,11 +142,11 @@ Because this is a brand-new database, it starts empty. The five schools you alre
 | Roadmap | `roadmap.html` |
 | Volunteer Program | `volunteer-program.html` |
 | Brand Guide | `brand-guide.html` |
-| Recruitment one-pager | `recruitment-intro.html` |
+| Recruitment intro material | `recruitment-intro.html` |
 | Outreach Tracker | `outreach-tracker.html` |
 
 All internal links between these pages already use these filenames, so as long as they all sit in the same folder (repo root, as this guide sets up), nothing else needs to change.
 
 ## What never changes here
 
-Nothing about the Brand Guide, Roadmap, Volunteer Program, or Recruitment one-pager needs Firebase or any other backend — they're plain pages and will work forever on GitHub Pages at no cost. Only the Outreach Tracker needs Part 2, because it's the one page with data that's meant to be shared and saved.
+Nothing about the Brand Guide, Roadmap, Volunteer Program, or Recruitment intro material needs Firebase or any other backend — they're plain pages and will work forever on GitHub Pages at no cost. Only the Outreach Tracker needs Part 2, because it's the one page with data that's meant to be shared and saved.
