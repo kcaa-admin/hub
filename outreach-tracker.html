@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KCAA Outreach Tracker</title>
+<meta name="description" content="Live, shared tracker of KCAA's school and volunteer outreach.">
+<style>
+  :root {
+    --bg: #f3f5f7; --surface: #ffffff; --ink: #0a0a0a; --ink-soft: #565f68; --ink-faint: #889198;
+    --line: #dde2e6; --red: #d01048; --red-soft: #fbe6ec; --blue: #3090d8; --blue-soft: #e6f2fb;
+    --green: #2f8a4e; --green-soft: #e6f5ea;
+    --shadow: 0 1px 2px rgba(10,10,10,0.04), 0 8px 24px -14px rgba(10,10,10,0.16);
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    --bg: #101214; --surface: #1a1c1f; --ink: #f1f2f3; --ink-soft: #b4bac0; --ink-faint: #7d848b;
+    --line: #2c2f33; --red: #ef4778; --red-soft: #331a22; --blue: #5cabe6; --blue-soft: #17283a;
+    --green: #43b06a; --green-soft: #17301f;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 30px -14px rgba(0,0,0,0.6);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101214; --surface: #1a1c1f; --ink: #f1f2f3; --ink-soft: #b4bac0; --ink-faint: #7d848b;
+      --line: #2c2f33; --red: #ef4778; --red-soft: #331a22; --blue: #5cabe6; --blue-soft: #17283a;
+      --green: #43b06a; --green-soft: #17301f;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 30px -14px rgba(0,0,0,0.6);
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, "Segoe UI", ui-sans-serif, system-ui, sans-serif; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  .page { max-width: 960px; margin: 0 auto; padding: 32px 24px 100px; }
+
+  .back-nav { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--ink-soft); text-decoration: none; padding: 10px 4px; margin-bottom: 16px; }
+  .back-nav:hover, .back-nav:focus-visible { color: var(--blue); }
+  .back-nav .arrow { font-size: 15px; }
+
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue); margin: 0 0 10px; }
+  h1 { font-size: clamp(26px, 4vw, 36px); font-weight: 800; letter-spacing: -0.01em; margin: 0 0 12px; text-wrap: balance; }
+  .lede { font-size: 15.5px; color: var(--ink-soft); max-width: 66ch; margin: 0 0 36px; }
+
+  section.block { margin-bottom: 40px; }
+  h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-faint); margin: 0 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--line); display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  h2 .h2-note { font-size: 11px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--ink-faint); }
+
+  /* --- sync banner --- */
+  .sync-banner { display: none; align-items: center; gap: 10px; background: var(--red-soft); border: 1px solid color-mix(in srgb, var(--red) 30%, var(--line)); color: var(--red); border-radius: 10px; padding: 10px 14px; font-size: 13px; font-weight: 600; margin-bottom: 22px; }
+  .sync-banner.show { display: flex; }
+
+  /* --- summary: stat tiles --- */
+  .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(122px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); margin-bottom: 16px; }
+  .stat-tile { background: var(--surface); padding: 14px 14px 12px; position: relative; }
+  .stat-tile::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--dot, var(--ink-faint)); }
+  .stat-tile .num { font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 800; color: var(--ink); display: block; }
+  .stat-tile .label { font-size: 11px; color: var(--ink-faint); margin-top: 2px; line-height: 1.3; }
+  .stat-tile.total .num { color: var(--blue); }
+
+  /* --- funnel bar --- */
+  .funnel-wrap { margin-bottom: 16px; }
+  .funnel-bar { display: flex; width: 100%; height: 22px; border-radius: 999px; overflow: hidden; background: var(--line); box-shadow: var(--shadow); }
+  .funnel-seg { background: var(--seg, var(--ink-faint)); min-width: 3px; transition: flex-basis .3s ease; position: relative; }
+  .funnel-seg + .funnel-seg { border-left: 2px solid var(--surface); }
+  .funnel-legend { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-top: 10px; }
+  .funnel-legend .item { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-soft); }
+  .funnel-legend .swatch { width: 9px; height: 9px; border-radius: 3px; background: var(--dot, var(--ink-faint)); flex-shrink: 0; }
+  .funnel-legend .item b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  /* --- milestone + declined chips --- */
+  .chip-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); box-shadow: var(--shadow); }
+  .chip .num { font-variant-numeric: tabular-nums; font-weight: 800; color: var(--ink); font-size: 13.5px; }
+  .chip.milestone .num { color: var(--green); }
+  .chip.declined { color: var(--red); border-color: color-mix(in srgb, var(--red) 30%, var(--line)); background: var(--red-soft); }
+  .chip.declined .num { color: var(--red); }
+
+  /* --- filter row --- */
+  .filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .filter-row select, .filter-row input[type="search"] { font: inherit; font-size: 13px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+  .filter-row input[type="search"] { flex: 1; min-width: 160px; }
+  .filter-count { font-size: 12px; color: var(--ink-faint); margin-left: auto; }
+
+  /* --- empty state --- */
+  .empty-state { background: var(--surface); border: 1px dashed var(--line); border-radius: 12px; padding: 28px 20px; text-align: center; color: var(--ink-faint); font-size: 13.5px; }
+
+  /* --- school list --- */
+  .school-list { display: flex; flex-direction: column; gap: 10px; }
+  .school-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .school-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+  .school-name { font-size: 15px; font-weight: 800; color: var(--ink); margin-right: auto; }
+  .priority-badge { font-size: 11px; font-weight: 800; color: var(--ink-faint); font-variant-numeric: tabular-nums; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; }
+  .stage-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 9px; border-radius: 999px; background: var(--pill-bg, var(--line)); color: var(--pill-fg, var(--ink-soft)); white-space: nowrap; }
+  .icon-btn { background: none; border: none; color: var(--ink-faint); cursor: pointer; font-size: 12.5px; font-weight: 700; padding: 5px 8px; border-radius: 6px; }
+  .icon-btn:hover, .icon-btn:focus-visible { color: var(--blue); background: var(--blue-soft); }
+  .icon-btn.danger:hover, .icon-btn.danger:focus-visible { color: var(--red); background: var(--red-soft); }
+
+  .school-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px 20px; margin-top: 10px; }
+  .field-label { font-size: 10px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 2px; }
+  .field-value { font-size: 13.5px; color: var(--ink); }
+  .field-value a { color: var(--blue); text-decoration: none; }
+  .field-value a:hover { text-decoration: underline; }
+  .field-value.notes { grid-column: 1 / -1; color: var(--ink-soft); white-space: pre-wrap; }
+  .milestone-flags { display: flex; gap: 14px; margin-top: 10px; font-size: 12px; color: var(--ink-faint); }
+  .milestone-flags .flag-on { color: var(--green); font-weight: 700; }
+
+  /* --- inline edit form (reused by add-form) --- */
+  .entry-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px 16px; margin-top: 12px; }
+  .entry-form .full { grid-column: 1 / -1; }
+  .form-field label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 5px; }
+  .form-field input[type="text"], .form-field input[type="date"], .form-field select, .form-field textarea {
+    width: 100%; font: inherit; font-size: 14px; padding: 9px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+  }
+  .form-field textarea { resize: vertical; min-height: 64px; }
+  .form-field.checks { display: flex; gap: 18px; align-items: center; padding-top: 22px; }
+  .form-field.checks label { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--ink); margin-bottom: 0; }
+  .form-field.checks input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--green); }
+  .form-actions { grid-column: 1 / -1; display: flex; gap: 10px; margin-top: 2px; }
+  .btn { font: inherit; font-size: 13.5px; font-weight: 700; padding: 9px 18px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; }
+  .btn.primary { background: var(--blue); color: #fff; }
+  .btn.primary:hover, .btn.primary:focus-visible { background: color-mix(in srgb, var(--blue) 85%, black); }
+  .btn.ghost { background: none; border-color: var(--line); color: var(--ink-soft); }
+  .btn.ghost:hover, .btn.ghost:focus-visible { background: var(--line); }
+
+  .required-mark { color: var(--red); }
+
+  /* --- add-entry section --- */
+  .add-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px 20px; box-shadow: var(--shadow); }
+
+  footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-faint); }
+
+  @media (max-width: 480px) {
+    .school-name { flex-basis: 100%; margin-right: 0; }
+  }
+</style>
+</head>
+<body>
+<div id="kcaa-gate" style="position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;">
+  <form id="kcaa-gate-form" style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 26px;box-shadow:var(--shadow);width:100%;max-width:320px;box-sizing:border-box;font-family:-apple-system,'Segoe UI',ui-sans-serif,system-ui,sans-serif;">
+    <p style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue);margin:0 0 8px;">KCAA Hub</p>
+    <h1 style="font-size:19px;font-weight:800;margin:0 0 16px;color:var(--ink);">Enter password</h1>
+    <input type="password" id="kcaa-gate-pw" autocomplete="current-password" placeholder="Password" style="width:100%;font:inherit;font-size:15px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);margin-bottom:12px;box-sizing:border-box;">
+    <button type="submit" style="width:100%;font:inherit;font-size:14px;font-weight:700;padding:10px 16px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;">Enter</button>
+    <p id="kcaa-gate-err" style="display:none;color:var(--red);font-size:13px;margin:12px 0 0;">Incorrect password &mdash; try again.</p>
+  </form>
+</div>
+<script src="gate.js"></script>
+
+
+<div class="page">
+  <a class="back-nav" href="index.html"><span class="arrow">&larr;</span> Back to Hub</a>
+
+  <p class="eyebrow">KCAA &middot; Volunteer Program</p>
+  <h1>School &amp; Volunteer Outreach Tracker</h1>
+  <p class="lede">Every high school and university KCAA has reached out to, where each one stands, and what's next. Changes here save live for everyone who opens this page.</p>
+
+  <div class="sync-banner" id="syncBanner">&#9888; Live sync isn't available in this view, so changes on this page won't be saved. Reopen the tracker from its published link.</div>
+
+  <section class="block">
+    <h2>Progress by milestone <span class="h2-note" id="lastUpdatedNote"></span></h2>
+
+    <div class="stat-row" id="statRow"></div>
+
+    <div class="funnel-wrap">
+      <div class="funnel-bar" id="funnelBar"></div>
+      <div class="funnel-legend" id="funnelLegend"></div>
+    </div>
+
+    <div class="chip-row" id="chipRow"></div>
+  </section>
+
+  <section class="block">
+    <h2>Schools</h2>
+
+    <div class="filter-row">
+      <input type="search" id="searchInput" placeholder="Search by school or contact&hellip;">
+      <select id="stageFilter">
+        <option value="">All stages</option>
+      </select>
+      <span class="filter-count" id="filterCount"></span>
+    </div>
+
+    <div class="school-list" id="schoolList"></div>
+    <div class="empty-state" id="emptyState" style="display:none;"></div>
+  </section>
+
+  <section class="block">
+    <h2>Add a new entry</h2>
+    <div class="add-card">
+      <form id="addForm" class="entry-form" autocomplete="off">
+        <div class="form-field full">
+          <label for="f_name">School / organization <span class="required-mark">*</span></label>
+          <input type="text" id="f_name" required placeholder="e.g. Kennedy Collegiate">
+        </div>
+        <div class="form-field">
+          <label for="f_contactName">Contact person</label>
+          <input type="text" id="f_contactName" placeholder="e.g. Mrs. Han, guidance counselor">
+        </div>
+        <div class="form-field">
+          <label for="f_contactInfo">Contact info</label>
+          <input type="text" id="f_contactInfo" placeholder="email or phone">
+        </div>
+        <div class="form-field">
+          <label for="f_area">Area</label>
+          <input type="text" id="f_area" placeholder="e.g. Thornhill">
+        </div>
+        <div class="form-field">
+          <label for="f_priority">Priority</label>
+          <input type="text" inputmode="numeric" id="f_priority" placeholder="e.g. 1">
+        </div>
+        <div class="form-field">
+          <label for="f_stage">Stage</label>
+          <select id="f_stage"></select>
+        </div>
+        <div class="form-field">
+          <label for="f_lastInteraction">Date of last interaction</label>
+          <input type="date" id="f_lastInteraction">
+        </div>
+        <div class="form-field checks full">
+          <label><input type="checkbox" id="f_poster"> Poster displayed</label>
+          <label><input type="checkbox" id="f_volunteers"> Volunteers sent</label>
+        </div>
+        <div class="form-field full">
+          <label for="f_notes">Notes</label>
+          <textarea id="f_notes" placeholder="Anything else worth remembering&mdash;how they responded, best way to reach them, follow-up dates&hellip;"></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn primary">Add school</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <footer>KCAA internal &middot; outreach tracker v1.1 &middot; part of the <a href="volunteer-program.html" style="color:var(--ink-faint)">volunteer program plan</a></footer>
+</div>
+
+<!--
+  ============================================================================
+  FIREBASE SETUP — see the setup guide that came with this file.
+  This tracker holds a small list (a few dozen schools, tops), so this is
+  kept intentionally simple: no login screen, no auth layer — just a small
+  shared Firestore database.
+  1. Create a free Firebase project (firebase.google.com) and enable
+     Firestore Database.
+  2. Project settings → General → Your apps → Add app → Web app.
+     Copy the config object Firebase gives you into firebaseConfig below.
+  3. Firestore → Rules, and paste in the (open) rules from the setup guide.
+     Anyone with this page's URL can read/write the tracker — reasonable for
+     a small internal tool at an unpublished URL, not for anything sensitive.
+  This config is a public identifier, not a secret — it's meant to ship in
+  client-side code.
+  ============================================================================
+-->
+<script>
+(function () {
+  "use strict";
+
+  // Firebase is loaded on demand (below, via dynamic import) rather than as a
+  // static <script type="module"> import, so that a network hiccup or an
+  // unconfigured project degrades gracefully into local mode instead of
+  // breaking the whole page.
+  var firebaseConfig = {
+    apiKey: "REPLACE_WITH_YOUR_API_KEY",
+    authDomain: "REPLACE_WITH_YOUR_PROJECT.firebaseapp.com",
+    projectId: "REPLACE_WITH_YOUR_PROJECT_ID",
+    storageBucket: "REPLACE_WITH_YOUR_PROJECT.appspot.com",
+    messagingSenderId: "REPLACE_WITH_YOUR_SENDER_ID",
+    appId: "REPLACE_WITH_YOUR_APP_ID"
+  };
+  var fsApi = null; // populated with the firebase-firestore module namespace once loaded
+
+  // ---- stage taxonomy -------------------------------------------------
+  // Completed = poster displayed AND/OR volunteers sent (either signal
+  // is treated as "Active Partner" for the milestone summary, even if a
+  // record's dropdown stage lags behind).
+  var STAGES = [
+    { key: "not_contacted",   label: "Not Contacted",     dot: "var(--ink-faint)", pillBg: "var(--line)",       pillFg: "var(--ink-soft)" },
+    { key: "contacted",       label: "Contacted",         dot: "var(--blue)",      pillBg: "var(--blue-soft)",  pillFg: "var(--blue)" },
+    { key: "in_conversation", label: "In Conversation",   dot: "var(--blue)",      pillBg: "var(--blue-soft)",  pillFg: "var(--blue)" },
+    { key: "agreed",          label: "Agreed to Partner",  dot: "var(--blue)",      pillBg: "var(--blue-soft)",  pillFg: "var(--blue)" },
+    { key: "active_partner",  label: "Active Partner",    dot: "var(--green)",     pillBg: "var(--green-soft)", pillFg: "var(--green)" }
+  ];
+  var DECLINED = { key: "declined", label: "Declined", dot: "var(--red)", pillBg: "var(--red-soft)", pillFg: "var(--red)" };
+  var ALL_STAGES = STAGES.concat([DECLINED]);
+  var STAGE_BY_KEY = {};
+  ALL_STAGES.forEach(function (s) { STAGE_BY_KEY[s.key] = s; });
+
+  function stageInfo(key) { return STAGE_BY_KEY[key] || STAGES[0]; }
+  function isComplete(school) {
+    return !!school.posterDisplayed || !!school.volunteersSent || school.stage === "active_partner";
+  }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function fmtDate(iso) {
+    if (!iso) return "&mdash;";
+    var d = new Date(iso + "T00:00:00");
+    if (isNaN(d.getTime())) return esc(iso);
+    return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  }
+  function contactLink(info) {
+    if (!info) return "&mdash;";
+    var v = info.trim();
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return '<a href="mailto:' + esc(v) + '">' + esc(v) + "</a>";
+    if (/^[+\d][\d\s().-]{5,}$/.test(v)) return '<a href="tel:' + esc(v.replace(/[^\d+]/g, "")) + '">' + esc(v) + "</a>";
+    return esc(v);
+  }
+
+  // ---- populate the static stage <select> elements ---------------------
+  function fillStageSelect(sel, includeAll) {
+    sel.innerHTML = "";
+    if (includeAll) {
+      var optAll = document.createElement("option");
+      optAll.value = "";
+      optAll.textContent = "All stages";
+      sel.appendChild(optAll);
+    }
+    ALL_STAGES.forEach(function (s) {
+      var o = document.createElement("option");
+      o.value = s.key;
+      o.textContent = s.label;
+      sel.appendChild(o);
+    });
+  }
+  fillStageSelect(document.getElementById("stageFilter"), true);
+  fillStageSelect(document.getElementById("f_stage"), false);
+  (function () {
+    var d = new Date();
+    document.getElementById("f_lastInteraction").value = d.toISOString().slice(0, 10);
+  })();
+
+  // ---- state -------------------------------------------------------
+  var schools = [];         // [{id, name, contactName, contactInfo, stage, posterDisplayed, volunteersSent, lastInteraction, notes, updatedAt}]
+  var firestoreDb = null;
+  var editingId = null;     // id currently showing an inline edit form
+  var localMode = false;    // true if Firestore is unavailable/unconfigured
+
+  function genId() {
+    return "s_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  // ---- rendering -----------------------------------------------------
+  function render() {
+    renderSummary();
+    renderList();
+  }
+
+  function renderSummary() {
+    var counts = {};
+    ALL_STAGES.forEach(function (s) { counts[s.key] = 0; });
+    var posterCount = 0, volunteerCount = 0;
+    schools.forEach(function (s) {
+      var k = ALL_STAGES.some(function (st) { return st.key === s.stage; }) ? s.stage : "not_contacted";
+      counts[k]++;
+      if (s.posterDisplayed) posterCount++;
+      if (s.volunteersSent) volunteerCount++;
+    });
+    var total = schools.length;
+
+    // stat tiles: total + each funnel stage
+    var statRow = document.getElementById("statRow");
+    var tiles = ['<div class="stat-tile total"><span class="num">' + total + '</span><span class="label">Total schools</span></div>'];
+    STAGES.forEach(function (s) {
+      tiles.push(
+        '<div class="stat-tile" style="--dot:' + s.dot + '"><span class="num">' + counts[s.key] +
+        '</span><span class="label">' + esc(s.label) + "</span></div>"
+      );
+    });
+    statRow.innerHTML = tiles.join("");
+
+    // funnel bar (proportional to the 5 active stages; declined shown separately as a chip)
+    var activeTotal = STAGES.reduce(function (a, s) { return a + counts[s.key]; }, 0);
+    var bar = document.getElementById("funnelBar");
+    var legend = document.getElementById("funnelLegend");
+    if (activeTotal === 0) {
+      bar.innerHTML = '<div class="funnel-seg" style="--seg:var(--line); flex: 1 1 auto;"></div>';
+      legend.innerHTML = '<span class="item">No schools tracked yet</span>';
+    } else {
+      var segs = [], legs = [];
+      STAGES.forEach(function (s) {
+        var c = counts[s.key];
+        if (c > 0) segs.push('<div class="funnel-seg" style="--seg:' + s.dot + '; flex-basis:' + ((c / activeTotal) * 100) + '%;" title="' + esc(s.label) + ": " + c + '"></div>');
+        legs.push('<span class="item"><span class="swatch" style="--dot:' + s.dot + '"></span>' + esc(s.label) + " <b>" + c + "</b></span>");
+      });
+      bar.innerHTML = segs.join("");
+      legend.innerHTML = legs.join("");
+    }
+
+    // milestone + declined chips
+    var chipRow = document.getElementById("chipRow");
+    chipRow.innerHTML =
+      '<span class="chip milestone">&#10003; <span class="num">' + posterCount + '</span> poster' + (posterCount === 1 ? "" : "s") + ' displayed</span>' +
+      '<span class="chip milestone">&#10003; <span class="num">' + volunteerCount + '</span> sent volunteer' + (volunteerCount === 1 ? "" : "s") + '</span>' +
+      '<span class="chip declined">&#10007; <span class="num">' + counts.declined + '</span> declined</span>';
+  }
+
+  function currentFilters() {
+    return {
+      q: (document.getElementById("searchInput").value || "").trim().toLowerCase(),
+      stage: document.getElementById("stageFilter").value
+    };
+  }
+
+  function renderList() {
+    var f = currentFilters();
+    var listEl = document.getElementById("schoolList");
+    var emptyEl = document.getElementById("emptyState");
+
+    var filtered = schools.filter(function (s) {
+      if (f.stage && s.stage !== f.stage) return false;
+      if (f.q) {
+        var hay = (s.name + " " + (s.contactName || "") + " " + (s.contactInfo || "")).toLowerCase();
+        if (hay.indexOf(f.q) === -1) return false;
+      }
+      return true;
+    });
+
+    document.getElementById("filterCount").textContent =
+      schools.length ? (filtered.length + " of " + schools.length + " shown") : "";
+
+    if (schools.length === 0) {
+      listEl.innerHTML = "";
+      emptyEl.style.display = "block";
+      emptyEl.textContent = "No schools tracked yet — add the first one in the form below.";
+      return;
+    }
+    if (filtered.length === 0) {
+      listEl.innerHTML = "";
+      emptyEl.style.display = "block";
+      emptyEl.textContent = "No schools match your search or filter.";
+      return;
+    }
+    emptyEl.style.display = "none";
+
+    listEl.innerHTML = filtered.map(renderCard).join("");
+    attachCardHandlers();
+  }
+
+  function renderCard(school) {
+    var si = stageInfo(school.stage);
+    if (editingId === school.id) return renderEditCard(school);
+
+    var complete = isComplete(school);
+    var badge = complete && school.stage !== "active_partner"
+      ? ' <span class="stage-pill" style="--pill-bg:var(--green-soft); --pill-fg:var(--green);">&#10003; Milestone hit</span>'
+      : "";
+
+    var priorityBadge = (school.priority !== undefined && school.priority !== null && school.priority !== "")
+      ? '<span class="priority-badge">#' + esc(school.priority) + '</span>' : "";
+
+    return (
+      '<div class="school-card" data-id="' + school.id + '">' +
+        '<div class="school-head">' +
+          '<span class="school-name">' + esc(school.name) + "</span>" +
+          priorityBadge +
+          '<span class="stage-pill" style="--pill-bg:' + si.pillBg + "; --pill-fg:" + si.pillFg + ';">' + esc(si.label) + "</span>" +
+          badge +
+          '<button type="button" class="icon-btn" data-act="edit">Edit</button>' +
+          '<button type="button" class="icon-btn danger" data-act="delete">Delete</button>' +
+        "</div>" +
+        '<div class="school-meta">' +
+          '<div><div class="field-label">Contact</div><div class="field-value">' + (school.contactName ? esc(school.contactName) : "&mdash;") + "</div></div>" +
+          '<div><div class="field-label">Contact info</div><div class="field-value">' + contactLink(school.contactInfo) + "</div></div>" +
+          '<div><div class="field-label">Area</div><div class="field-value">' + (school.area ? esc(school.area) : "&mdash;") + "</div></div>" +
+          '<div><div class="field-label">Last interaction</div><div class="field-value">' + fmtDate(school.lastInteraction) + "</div></div>" +
+          (school.notes ? '<div class="field-value notes"><div class="field-label">Notes</div>' + esc(school.notes) + "</div>" : "") +
+        "</div>" +
+        '<div class="milestone-flags">' +
+          '<span class="' + (school.posterDisplayed ? "flag-on" : "") + '">' + (school.posterDisplayed ? "&#10003;" : "&#9675;") + " Poster displayed</span>" +
+          '<span class="' + (school.volunteersSent ? "flag-on" : "") + '">' + (school.volunteersSent ? "&#10003;" : "&#9675;") + " Volunteers sent</span>" +
+        "</div>" +
+      "</div>"
+    );
+  }
+
+  function renderEditCard(school) {
+    return (
+      '<div class="school-card" data-id="' + school.id + '">' +
+        '<form class="edit-form" data-id="' + school.id + '">' +
+          '<div class="school-head"><span class="school-name">' + esc(school.name) + ' &middot; editing</span></div>' +
+          '<div class="entry-form">' +
+            '<div class="form-field full"><label>School / organization</label><input type="text" name="name" value="' + esc(school.name) + '" required></div>' +
+            '<div class="form-field"><label>Contact person</label><input type="text" name="contactName" value="' + esc(school.contactName || "") + '"></div>' +
+            '<div class="form-field"><label>Contact info</label><input type="text" name="contactInfo" value="' + esc(school.contactInfo || "") + '"></div>' +
+            '<div class="form-field"><label>Area</label><input type="text" name="area" value="' + esc(school.area || "") + '"></div>' +
+            '<div class="form-field"><label>Priority</label><input type="text" inputmode="numeric" name="priority" value="' + esc(school.priority != null ? school.priority : "") + '"></div>' +
+            '<div class="form-field"><label>Stage</label><select name="stage">' + ALL_STAGES.map(function (s) {
+              return '<option value="' + s.key + '"' + (s.key === school.stage ? " selected" : "") + ">" + esc(s.label) + "</option>";
+            }).join("") + "</select></div>" +
+            '<div class="form-field"><label>Date of last interaction</label><input type="date" name="lastInteraction" value="' + esc(school.lastInteraction || "") + '"></div>' +
+            '<div class="form-field checks full">' +
+              '<label><input type="checkbox" name="posterDisplayed"' + (school.posterDisplayed ? " checked" : "") + "> Poster displayed</label>" +
+              '<label><input type="checkbox" name="volunteersSent"' + (school.volunteersSent ? " checked" : "") + "> Volunteers sent</label>" +
+            "</div>" +
+            '<div class="form-field full"><label>Notes</label><textarea name="notes">' + esc(school.notes || "") + "</textarea></div>" +
+            '<div class="form-actions">' +
+              '<button type="submit" class="btn primary">Save</button>' +
+              '<button type="button" class="btn ghost" data-act="cancel">Cancel</button>' +
+            "</div>" +
+          "</div>" +
+        "</form>" +
+      "</div>"
+    );
+  }
+
+  function attachCardHandlers() {
+    var listEl = document.getElementById("schoolList");
+    listEl.querySelectorAll('[data-act="edit"]').forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        editingId = btn.closest(".school-card").dataset.id;
+        renderList();
+      });
+    });
+    listEl.querySelectorAll('[data-act="cancel"]').forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        editingId = null;
+        renderList();
+      });
+    });
+    listEl.querySelectorAll('[data-act="delete"]').forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var card = btn.closest(".school-card");
+        if (btn.dataset.confirm === "1") {
+          removeSchool(card.dataset.id);
+        } else {
+          btn.dataset.confirm = "1";
+          btn.textContent = "Confirm?";
+          setTimeout(function () { btn.dataset.confirm = ""; btn.textContent = "Delete"; }, 3000);
+        }
+      });
+    });
+    listEl.querySelectorAll(".edit-form").forEach(function (form) {
+      form.addEventListener("submit", function (ev) {
+        ev.preventDefault();
+        var fd = new FormData(form);
+        var priorityRaw = (fd.get("priority") || "").toString().trim();
+        var patch = {
+          name: (fd.get("name") || "").toString().trim(),
+          contactName: (fd.get("contactName") || "").toString().trim(),
+          contactInfo: (fd.get("contactInfo") || "").toString().trim(),
+          area: (fd.get("area") || "").toString().trim(),
+          priority: priorityRaw === "" ? null : (isNaN(Number(priorityRaw)) ? priorityRaw : Number(priorityRaw)),
+          stage: (fd.get("stage") || "not_contacted").toString(),
+          lastInteraction: (fd.get("lastInteraction") || "").toString(),
+          posterDisplayed: !!fd.get("posterDisplayed"),
+          volunteersSent: !!fd.get("volunteersSent"),
+          notes: (fd.get("notes") || "").toString().trim()
+        };
+        if ((patch.posterDisplayed || patch.volunteersSent) && patch.stage !== "declined") {
+          patch.stage = "active_partner";
+        }
+        var id = form.dataset.id;
+        var idx = schools.findIndex(function (s) { return s.id === id; });
+        if (idx !== -1) schools[idx] = Object.assign({}, schools[idx], patch);
+        sortSchools();
+        editingId = null;
+        render(); // exit edit mode immediately; the live subscription reconciles right after
+        updateSchool(id, patch);
+      });
+    });
+  }
+
+  // ---- persistence layer ---------------------------------------------
+  function sortSchools() {
+    schools.sort(function (a, b) {
+      var pa = (a.priority === undefined || a.priority === null || a.priority === "") ? null : Number(a.priority);
+      var pb = (b.priority === undefined || b.priority === null || b.priority === "") ? null : Number(b.priority);
+      if (pa !== null && pb !== null && pa !== pb) return pa - pb;
+      if (pa !== null && pb === null) return -1;
+      if (pa === null && pb !== null) return 1;
+      return (a.name || "").localeCompare(b.name || "");
+    });
+  }
+
+  function addSchool(data) {
+    data.updatedAt = new Date().toISOString();
+    if (localMode || !firestoreDb) {
+      data.id = genId();
+      schools.push(data);
+      sortSchools();
+      render();
+      return;
+    }
+    fsApi.addDoc(fsApi.collection(firestoreDb, "schools"), data).catch(function (e) {
+      console.error("add failed", e);
+    });
+  }
+
+  function updateSchool(id, patch) {
+    patch.updatedAt = new Date().toISOString();
+    if (localMode || !firestoreDb) {
+      var i = schools.findIndex(function (s) { return s.id === id; });
+      if (i !== -1) schools[i] = Object.assign({}, schools[i], patch);
+      sortSchools();
+      render();
+      return;
+    }
+    fsApi.updateDoc(fsApi.doc(firestoreDb, "schools", id), patch).catch(function (e) {
+      console.error("update failed", e);
+    });
+  }
+
+  function removeSchool(id) {
+    if (localMode || !firestoreDb) {
+      schools = schools.filter(function (s) { return s.id !== id; });
+      render();
+      return;
+    }
+    fsApi.deleteDoc(fsApi.doc(firestoreDb, "schools", id)).catch(function (e) {
+      console.error("delete failed", e);
+    });
+  }
+
+  // ---- add-entry form --------------------------------------------------
+  document.getElementById("addForm").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var name = document.getElementById("f_name").value.trim();
+    if (!name) return;
+    var poster = document.getElementById("f_poster").checked;
+    var volunteers = document.getElementById("f_volunteers").checked;
+    var stage = document.getElementById("f_stage").value || "not_contacted";
+    if (poster || volunteers) stage = "active_partner";
+    var priorityRaw = document.getElementById("f_priority").value.trim();
+
+    addSchool({
+      name: name,
+      contactName: document.getElementById("f_contactName").value.trim(),
+      contactInfo: document.getElementById("f_contactInfo").value.trim(),
+      area: document.getElementById("f_area").value.trim(),
+      priority: priorityRaw === "" ? null : (isNaN(Number(priorityRaw)) ? priorityRaw : Number(priorityRaw)),
+      stage: stage,
+      lastInteraction: document.getElementById("f_lastInteraction").value,
+      posterDisplayed: poster,
+      volunteersSent: volunteers,
+      notes: document.getElementById("f_notes").value.trim()
+    });
+
+    ev.target.reset();
+    document.getElementById("f_lastInteraction").value = new Date().toISOString().slice(0, 10);
+    document.getElementById("f_stage").value = "not_contacted";
+  });
+
+  document.getElementById("searchInput").addEventListener("input", renderList);
+  document.getElementById("stageFilter").addEventListener("change", renderList);
+
+  // ---- boot ------------------------------------------------------------
+  render(); // paint an empty/working state immediately
+
+  function goLocalMode(reason) {
+    if (reason) console.error("outreach tracker: falling back to local mode —", reason);
+    localMode = true;
+    document.getElementById("syncBanner").classList.add("show");
+  }
+
+  (function initFirebase() {
+    if (!firebaseConfig.apiKey || firebaseConfig.apiKey.indexOf("REPLACE_WITH") === 0) {
+      // Config hasn't been filled in yet — run in local (per-browser, non-shared) mode.
+      goLocalMode("firebaseConfig still has placeholder values");
+      return;
+    }
+    // Loaded on demand (not a static <script type="module"> import) so that a
+    // blocked/offline network degrades to local mode instead of breaking the
+    // whole page before any of the code above ever runs. No auth layer —
+    // this list is small and low-stakes, so the Firestore rules are just
+    // left open (see the setup guide) rather than adding a sign-in step.
+    Promise.all([
+      import("https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js")
+    ]).then(function (mods) {
+      var appApi = mods[0], firestoreApi = mods[1];
+      fsApi = firestoreApi;
+
+      var app = appApi.initializeApp(firebaseConfig);
+      firestoreDb = firestoreApi.getFirestore(app);
+
+      firestoreApi.onSnapshot(
+        firestoreApi.collection(firestoreDb, "schools"),
+        function (snap) {
+          schools = snap.docs.map(function (d) {
+            var data = d.data() || {};
+            data.id = d.id;
+            return data;
+          });
+          sortSchools();
+          render();
+        },
+        function (err) { goLocalMode("onSnapshot error: " + err); }
+      );
+    }).catch(function (e) {
+      goLocalMode("could not load Firebase SDK: " + e);
+    });
+  })();
+})();
+</script>
+
+</body>
+</html>

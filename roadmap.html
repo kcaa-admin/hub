@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KCAA Build Roadmap</title>
+<meta name="description" content="KCAA internal build roadmap.">
+</head>
+<body>
+<div id="kcaa-gate" style="position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;">
+  <form id="kcaa-gate-form" style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 26px;box-shadow:var(--shadow);width:100%;max-width:320px;box-sizing:border-box;font-family:-apple-system,'Segoe UI',ui-sans-serif,system-ui,sans-serif;">
+    <p style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue);margin:0 0 8px;">KCAA Hub</p>
+    <h1 style="font-size:19px;font-weight:800;margin:0 0 16px;color:var(--ink);">Enter password</h1>
+    <input type="password" id="kcaa-gate-pw" autocomplete="current-password" placeholder="Password" style="width:100%;font:inherit;font-size:15px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);margin-bottom:12px;box-sizing:border-box;">
+    <button type="submit" style="width:100%;font:inherit;font-size:14px;font-weight:700;padding:10px 16px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;">Enter</button>
+    <p id="kcaa-gate-err" style="display:none;color:var(--red);font-size:13px;margin:12px 0 0;">Incorrect password &mdash; try again.</p>
+  </form>
+</div>
+<script src="gate.js"></script>
+
+<style>
+  :root {
+    --bg: #f3f5f7; --surface: #ffffff; --ink: #0a0a0a; --ink-soft: #565f68; --ink-faint: #889198;
+    --line: #dde2e6; --red: #d01048; --red-soft: #fbe6ec; --blue: #3090d8; --blue-soft: #e6f2fb;
+    --rail: #c7ccd1;
+    --shadow: 0 1px 2px rgba(10,10,10,0.04), 0 8px 24px -14px rgba(10,10,10,0.16);
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    --bg: #101214; --surface: #1a1c1f; --ink: #f1f2f3; --ink-soft: #b4bac0; --ink-faint: #7d848b;
+    --line: #2c2f33; --red: #ef4778; --red-soft: #331a22; --blue: #5cabe6; --blue-soft: #17283a;
+    --rail: #3a3e42;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 30px -14px rgba(0,0,0,0.6);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101214; --surface: #1a1c1f; --ink: #f1f2f3; --ink-soft: #b4bac0; --ink-faint: #7d848b;
+      --line: #2c2f33; --red: #ef4778; --red-soft: #331a22; --blue: #5cabe6; --blue-soft: #17283a;
+      --rail: #3a3e42;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 30px -14px rgba(0,0,0,0.6);
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, "Segoe UI", ui-sans-serif, system-ui, sans-serif; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  .page { max-width: 920px; margin: 0 auto; padding: 32px 24px 96px; }
+
+  .back-nav { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--ink-soft); text-decoration: none; padding: 10px 4px; margin-bottom: 20px; }
+  .back-nav:hover, .back-nav:focus-visible { color: var(--blue); }
+  .back-nav .arrow { font-size: 15px; }
+
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue); margin: 0 0 10px; }
+  h1 { font-size: clamp(28px, 4vw, 38px); font-weight: 800; letter-spacing: -0.01em; margin: 0 0 12px; text-wrap: balance; color: var(--ink); }
+  .lede { font-size: 16px; color: var(--ink-soft); max-width: 62ch; margin: 0 0 32px; }
+
+  .statline { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-bottom: 44px; box-shadow: var(--shadow); }
+  .stat { background: var(--surface); padding: 16px 18px; }
+  .stat .num { font-variant-numeric: tabular-nums; font-size: 22px; font-weight: 800; color: var(--blue); display: block; }
+  .stat .label { font-size: 11.5px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+
+  section.block { margin-bottom: 40px; }
+  h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-faint); margin: 0 0 18px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+
+  .timeline { position: relative; padding-left: 34px; }
+  .timeline::before { content: ""; position: absolute; left: 11px; top: 6px; bottom: 6px; width: 2px; background: var(--rail); border-radius: 2px; }
+
+  .phase { position: relative; margin-bottom: 22px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px 20px; box-shadow: var(--shadow); }
+  .phase::before {
+    content: attr(data-n); position: absolute; left: -34px; top: 20px; width: 24px; height: 24px; border-radius: 50%;
+    background: var(--blue); color: white; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+    font-variant-numeric: tabular-nums; box-shadow: 0 0 0 4px var(--bg);
+  }
+  .phase.setup::before { background: var(--ink-faint); }
+  .phase.urgent::before { background: var(--red); }
+  .phase.last::before { background: var(--red); }
+
+  .phase-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; margin-bottom: 8px; }
+  .phase-title { font-size: 17px; font-weight: 800; color: var(--ink); }
+  .phase-meta { font-size: 12.5px; font-weight: 700; color: var(--blue); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  .status-pill { display: inline-block; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 999px; margin-right: 8px; vertical-align: middle; }
+  .status-pill.active { background: var(--red-soft); color: var(--red); }
+  .status-pill.done { background: var(--blue-soft); color: var(--blue); }
+
+  .phase-why { font-size: 14px; color: var(--ink-soft); margin: 0 0 14px; max-width: 68ch; }
+  .phase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px 20px; }
+  .field-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 3px; }
+  .field-value { font-size: 13.5px; color: var(--ink); }
+  .field-value a { color: var(--blue); }
+
+  .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .tag { font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--blue-soft); color: var(--blue); white-space: nowrap; }
+  .tag.red { background: var(--red-soft); color: var(--red); }
+
+  .connector-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+  .conn-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; box-shadow: var(--shadow); }
+  .conn-card h3 { font-size: 14.5px; margin: 0 0 6px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot.ready { background: #3f9a5c; }
+  .dot.build { background: var(--red); }
+  .conn-card p { font-size: 13px; color: var(--ink-soft); margin: 0; }
+
+  .hosting-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .hosting-table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); padding: 0 12px 8px 0; border-bottom: 1px solid var(--line); }
+  .hosting-table td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); color: var(--ink); vertical-align: top; }
+  .hosting-table tr:last-child td { border-bottom: none; }
+  .table-wrap { overflow-x: auto; }
+
+  .callout { background: var(--red-soft); border: 1px solid color-mix(in srgb, var(--red) 35%, var(--line)); border-radius: 12px; padding: 14px 18px; font-size: 13.5px; color: var(--ink); }
+  .callout strong { color: var(--red); }
+  .callout a { color: var(--red); font-weight: 700; }
+
+  footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-faint); }
+</style>
+
+<div class="page">
+  <a class="back-nav" href="index.html"><span class="arrow">&larr;</span> Back to Hub</a>
+
+  <p class="eyebrow">KCAA &middot; Volunteer Build Plan</p>
+  <h1>One board member, six projects, three hours a week</h1>
+  <p class="lede">A sequenced roadmap for the brand guide, volunteer program, website rebuild, financial system, social media agent, and inbox automation &mdash; ordered by dependency, leverage, and (for one phase) real-world timing.</p>
+
+  <div class="statline">
+    <div class="stat"><span class="num">2&ndash;3</span><span class="label">hrs / week</span></div>
+    <div class="stat"><span class="num">~150</span><span class="label">hrs / year</span></div>
+    <div class="stat"><span class="num">7</span><span class="label">phases</span></div>
+    <div class="stat"><span class="num">~13</span><span class="label">months, sequential</span></div>
+  </div>
+
+  <section class="block">
+    <h2>Why this order</h2>
+    <p class="phase-why" style="max-width:70ch;">
+      At 2&ndash;3 hrs/week, running six projects in parallel means six projects that stall. Most of the plan below still runs one thing at a time, in the order that unlocks or de-risks the next: brand rules feed the website and social voice; the inbox is a fast, isolated win; the financial system starts as a spreadsheet before it becomes software; social publishing goes last because it's public and hardest to walk back.
+    </p>
+    <p class="phase-why" style="max-width:70ch;">
+      The one exception is <strong style="color:var(--ink)">Volunteer Program (Phase 2)</strong>, which jumps the queue and runs alongside the tail of the brand guide. It's time-sensitive &mdash; high school and university outreach has a real semester calendar &mdash; and it's low-hour relative to its payoff: a business student who joins to help with Phase 5's bookkeeping or a marketing student who takes over Phase 6's social posting doesn't just add hands, it gives some of <em>this</em> roadmap's hours back.
+    </p>
+  </section>
+
+  <section class="block">
+    <h2>Sequence</h2>
+    <div class="timeline">
+
+      <div class="phase setup" data-n="0">
+        <div class="phase-head">
+          <span class="phase-title">Setup</span>
+          <span class="phase-meta">Week 1 &middot; ~2 hrs</span>
+        </div>
+        <p class="phase-why">One-time scaffolding so every later phase has somewhere to live.</p>
+        <div class="phase-grid">
+          <div><div class="field-label">Deliverable</div><div class="field-value">This linked document set (<a href="index.html">Hub</a>) as the house style for everything internal, per the Brand Guide's section 10</div></div>
+          <div><div class="field-label">Decisions made</div><div class="field-value">Internal docs are HTML-first, not Docs/Slides; hosting direction for the finance app is Vercel + Supabase (see below)</div></div>
+        </div>
+      </div>
+
+      <div class="phase" data-n="1">
+        <div class="phase-head">
+          <span class="phase-title"><span class="status-pill done">Nearly done</span>1 &middot; Brand identity guide</span>
+          <span class="phase-meta">Weeks 1&ndash;6 &middot; ~15 hrs</span>
+        </div>
+        <p class="phase-why">Lowest technical lift, highest leverage &mdash; everything visual downstream (site, social, forms, jerseys) inherits from this.</p>
+        <div class="phase-grid">
+          <div><div class="field-label">Status</div><div class="field-value">v0.3 published &mdash; logo, exact colors, program color system, and typography are locked. Two items open for the board: color clash check on Hockey/Basketball gear, and reconciling the Junior Tigers sub-brand.</div></div>
+          <div><div class="field-label">Doc</div><div class="field-value"><a href="brand-guide.html">Open the Brand Guide &rarr;</a></div></div>
+        </div>
+        <div class="tag-row"><span class="tag">Published</span></div>
+      </div>
+
+      <div class="phase urgent" data-n="2">
+        <div class="phase-head">
+          <span class="phase-title"><span class="status-pill active">Starts this week</span>2 &middot; Volunteer program</span>
+          <span class="phase-meta">Weeks 1&ndash;3 &middot; ~8 hrs</span>
+        </div>
+        <p class="phase-why">Runs in parallel with Phase 1 on purpose &mdash; outreach to high schools and universities is seasonal, and waiting for brand/website to finish first would miss the window.</p>
+        <div class="phase-grid">
+          <div><div class="field-label">Steps</div><div class="field-value">Target list of local schools &amp; universities &rarr; find contacts &rarr; send outreach (templates ready) &rarr; stand up an intake form &amp; tracker &rarr; follow up</div></div>
+          <div><div class="field-label">Doc</div><div class="field-value"><a href="volunteer-program.html">Open the Volunteer Program plan &rarr;</a></div></div>
+        </div>
+        <div class="tag-row"><span class="tag">Gmail</span><span class="tag">Google Forms</span><span class="tag">Sheets</span></div>
+      </div>
+
+      <div class="phase" data-n="3">
+        <div class="phase-head">
+          <span class="phase-title">3 &middot; info@kcaa.ca automation</span>
+          <span class="phase-meta">Weeks 7&ndash;10 &middot; ~10 hrs</span>
+        </div>
+        <p class="phase-why">Independent of brand/site, native to tools you already have, and removes a standing pain point fastest.</p>
+        <div class="phase-grid">
+          <div><div class="field-label">Steps</div><div class="field-value">Gmail filters/labels by category &rarr; auto-forward rules to the right board member &rarr; Apps Script weekly digest into a Sheet (volume, category, unanswered count)</div></div>
+          <div><div class="field-label">Stretch</div><div class="field-value">Claude-drafted reply suggestions surfaced in the digest, human sends</div></div>
+        </div>
+        <div class="tag-row"><span class="tag">Gmail</span><span class="tag">Apps Script</span><span class="tag">Sheets</span></div>
+      </div>
+
+      <div class="phase" data-n="4">
+        <div class="phase-head">
+          <span class="phase-title">4 &middot; Website rebuild</span>
+          <span class="phase-meta">Weeks 11&ndash;21 &middot; ~30 hrs</span>
+        </div>
+        <p class="phase-why">Current site (Squarespace) is already reasonably modern &mdash; this is a re-skin and mobile-first pass with the new brand, not a rebuild from zero.</p>
+        <div class="phase-grid">
+          <div><div class="field-label">Steps</div><div class="field-value">Sitemap/IA audit &rarr; pick a mobile-first Squarespace template &rarr; apply brand colors/type &rarr; rewrite copy per program &rarr; mobile QA pass on real phones &rarr; soft launch</div></div>
+          <div><div class="field-label">Depends on</div><div class="field-value">Phase 1 brand guide</div></div>
+        </div>
+        <div class="tag-row"><span class="tag">Squarespace (manual editor)</span></div>
+      </div>
+
+      <div class="phase" data-n="5">
+        <div class="phase-head">
+          <span class="phase-title">5 &middot; Financial visibility</span>
+          <span class="phase-meta">Weeks 22&ndash;39 &middot; ~45 hrs</span>
+        </div>
+        <p class="phase-why">Highest governance value but the biggest build &mdash; split into a spreadsheet stage you can start using in weeks, and a software stage once the categories are proven.</p>
+        <div class="phase-grid">
+          <div><div class="field-label">5a &middot; Crawl (~4 wks)</div><div class="field-value">One standardized Sheet template per program (revenue, direct costs, allocated overhead) + a rollup tab. Migrate existing Excel data in.</div></div>
+          <div><div class="field-label">5b &middot; Walk/Run (~14 wks)</div><div class="field-value">Small web app once categories stabilize: transaction entry, per-program P&amp;L, per-participant unit economics, monthly board summary auto-emailed. Lives under the Hub as a section, not the other way around.</div></div>
+        </div>
+        <div class="tag-row"><span class="tag">Sheets (5a)</span><span class="tag">Custom web app (5b)</span><span class="tag">Hosted &mdash; see below</span></div>
+      </div>
+
+      <div class="phase last" data-n="6">
+        <div class="phase-head">
+          <span class="phase-title">6 &middot; Social media agent</span>
+          <span class="phase-meta">Weeks 40&ndash;49 &middot; ~20 hrs</span>
+        </div>
+        <p class="phase-why">Last on purpose: it needs the brand voice from Phase 1 to sound right, and publishing mistakes are public and hard to undo &mdash; so it starts human-in-the-loop, not autonomous.</p>
+        <div class="phase-grid">
+          <div><div class="field-label">Steps</div><div class="field-value">Content calendar tied to program schedule &rarr; Claude drafts posts on a schedule &rarr; approver reviews in a queue &rarr; publish via Buffer/Later API &rarr; only automate reply-monitoring once posting is trusted</div></div>
+          <div><div class="field-label">Depends on</div><div class="field-value">Phase 1 brand voice; Phase 4 site for link-outs; ideally staffed by a Phase 2 volunteer, not the board member</div></div>
+        </div>
+        <div class="tag-row"><span class="tag">Buffer/Later API</span><span class="tag red">Human approval gate</span></div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Claude connectors &amp; where each tool actually plugs in</h2>
+    <div class="connector-grid">
+      <div class="conn-card">
+        <h3><span class="dot ready"></span>Google Workspace</h3>
+        <p>Gmail, Drive, Docs, Sheets, Calendar have a native Claude connector on claude.ai &mdash; Claude can read/draft email, search Drive, and edit Docs/Sheets directly in a chat. This covers Phase 2's outreach tracking, the Phase 5a spreadsheet work, and reviewing the Phase 3 inbox digest.</p>
+      </div>
+      <div class="conn-card">
+        <h3><span class="dot build"></span>Squarespace</h3>
+        <p>No official connector &mdash; Squarespace doesn't expose a content API for this. Work stays manual in the Squarespace editor; Claude's role is drafting copy, layout notes, and CSS snippets you paste in yourself.</p>
+      </div>
+      <div class="conn-card">
+        <h3><span class="dot build"></span>Instagram / Facebook</h3>
+        <p>No official connector either. Two paths: Meta's Graph API directly (requires app review to get publish permission), or a scheduler like Buffer/Later with a documented API &mdash; much less setup, and it already includes an approval queue.</p>
+      </div>
+      <div class="conn-card">
+        <h3><span class="dot build"></span>Financial web app</h3>
+        <p>Not a connector at all &mdash; this is custom software built with Claude Code directly, not something you "connect" to. Hosting choice below.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Hosting for the financial app (Phase 5b) &mdash; a section under the Hub</h2>
+    <div class="table-wrap">
+      <table class="hosting-table">
+        <thead>
+          <tr><th>Layer</th><th>Recommendation</th><th>Why</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>App + API</td><td>Vercel (free tier)</td><td>Zero ops, deploys straight from a git push &mdash; matches a 2&ndash;3 hr/week cadence</td></tr>
+          <tr><td>Database</td><td>Supabase (free tier, Postgres)</td><td>Built-in Google OAuth so login can be restricted to board member accounts, no separate auth system to build</td></tr>
+          <tr><td>Cost at this scale</td><td>$0&ndash;$25/month</td><td>Nonprofit transaction volume stays well inside free-tier limits for years</td></tr>
+          <tr><td>Hub &amp; document set</td><td>Stays the top-level portal; the finance app mounts under it (e.g. a <code>/finance</code> route)</td><td>The Hub hosts everything, not the other way around &mdash; one address for members and board</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="callout">
+    <strong>This week:</strong> get the first outreach emails out (<a href="volunteer-program.html">Volunteer Program plan</a>), and send over Junior Tigers' existing logo/color so the <a href="brand-guide.html">Brand Guide</a>'s open question can close.
+  </div>
+
+  <footer>KCAA internal planning &middot; sequenced for a single volunteer at 2&ndash;3 hrs/week &middot; durations are estimates, not commitments</footer>
+</div>
+</body>
+</html>

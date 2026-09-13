@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KCAA Hub</title>
+<meta name="description" content="KCAA internal hub: brand guide, roadmap, volunteer program, and outreach tracker.">
+</head>
+<body>
+<div id="kcaa-gate" style="position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;">
+  <form id="kcaa-gate-form" style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 26px;box-shadow:var(--shadow);width:100%;max-width:320px;box-sizing:border-box;font-family:-apple-system,'Segoe UI',ui-sans-serif,system-ui,sans-serif;">
+    <p style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue);margin:0 0 8px;">KCAA Hub</p>
+    <h1 style="font-size:19px;font-weight:800;margin:0 0 16px;color:var(--ink);">Enter password</h1>
+    <input type="password" id="kcaa-gate-pw" autocomplete="current-password" placeholder="Password" style="width:100%;font:inherit;font-size:15px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);margin-bottom:12px;box-sizing:border-box;">
+    <button type="submit" style="width:100%;font:inherit;font-size:14px;font-weight:700;padding:10px 16px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;">Enter</button>
+    <p id="kcaa-gate-err" style="display:none;color:var(--red);font-size:13px;margin:12px 0 0;">Incorrect password &mdash; try again.</p>
+  </form>
+</div>
+<script src="gate.js"></script>
+
+<style>
+  :root {
+    --bg: #f3f5f7; --surface: #ffffff; --ink: #0a0a0a; --ink-soft: #565f68; --ink-faint: #889198;
+    --line: #dde2e6; --red: #d01048; --red-soft: #fbe6ec; --blue: #3090d8; --blue-soft: #e6f2fb;
+    --shadow: 0 1px 2px rgba(10,10,10,0.04), 0 8px 24px -14px rgba(10,10,10,0.16);
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    --bg: #101214; --surface: #1a1c1f; --ink: #f1f2f3; --ink-soft: #b4bac0; --ink-faint: #7d848b;
+    --line: #2c2f33; --red: #ef4778; --red-soft: #331a22; --blue: #5cabe6; --blue-soft: #17283a;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 30px -14px rgba(0,0,0,0.6);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101214; --surface: #1a1c1f; --ink: #f1f2f3; --ink-soft: #b4bac0; --ink-faint: #7d848b;
+      --line: #2c2f33; --red: #ef4778; --red-soft: #331a22; --blue: #5cabe6; --blue-soft: #17283a;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 30px -14px rgba(0,0,0,0.6);
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, "Segoe UI", ui-sans-serif, system-ui, sans-serif; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  .page { max-width: 900px; margin: 0 auto; padding: 28px 18px 80px; }
+  @media (min-width: 600px) { .page { padding: 32px 24px 100px; } }
+
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue); margin: 0 0 10px; }
+  h1 { font-size: clamp(30px, 8vw, 42px); font-weight: 800; letter-spacing: -0.01em; margin: 0 0 12px; text-wrap: balance; }
+  .lede { font-size: 15.5px; color: var(--ink-soft); max-width: 60ch; margin: 0 0 32px; }
+  @media (min-width: 600px) { .lede { font-size: 16px; margin-bottom: 40px; } }
+
+  section.block { margin-bottom: 36px; }
+  h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-faint); margin: 0 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+
+  .doc-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 480px) { .doc-grid { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; } }
+
+  .doc-card { display: block; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); text-decoration: none; color: inherit; transition: transform 0.12s ease, box-shadow 0.12s ease; -webkit-tap-highlight-color: transparent; }
+  .doc-card:hover, .doc-card:focus-visible { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(10,10,10,0.06), 0 14px 28px -14px rgba(10,10,10,0.22); }
+  .doc-card:active { transform: translateY(0); }
+
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+  .card-icon { font-size: 30px; line-height: 1; }
+  .doc-card .status { display: inline-block; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+  .doc-card .status.live { background: var(--blue-soft); color: var(--blue); }
+  .doc-card .status.urgent { background: var(--red-soft); color: var(--red); }
+  .doc-card h3 { font-size: 16.5px; font-weight: 800; margin: 0 0 6px; }
+  .doc-card p { font-size: 13px; color: var(--ink-soft); margin: 0; }
+  .doc-card .arrow { display: inline-block; margin-top: 14px; font-size: 12.5px; font-weight: 700; color: var(--blue); }
+
+  .doc-card.future { opacity: 0.6; cursor: default; }
+  .doc-card.future:hover, .doc-card.future:focus-visible { transform: none; box-shadow: var(--shadow); }
+  .doc-card.future .status { background: var(--line); color: var(--ink-faint); }
+  .doc-card.future .card-icon { filter: grayscale(0.4); }
+
+  .callout { background: var(--blue-soft); border: 1px solid color-mix(in srgb, var(--blue) 30%, var(--line)); border-radius: 12px; padding: 14px 18px; font-size: 13.5px; }
+  .callout strong { color: var(--blue); }
+
+  footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-faint); }
+</style>
+
+<div class="page">
+  <p class="eyebrow">kcaa.ca</p>
+  <h1>KCAA Hub</h1>
+  <p class="lede">One place for everything KCAA is building &mdash; brand, planning, volunteers, and eventually finance &mdash; instead of scattered Docs and Sheets. This will grow into the portal for the whole organization.</p>
+
+  <section class="block">
+    <h2>Open a document</h2>
+    <div class="doc-grid">
+      <a class="doc-card" href="roadmap.html">
+        <div class="card-top"><span class="card-icon">🗺️</span><span class="status live">Active plan</span></div>
+        <h3>Roadmap</h3>
+        <p>The sequenced build plan across brand, volunteers, website, finance, and social &mdash; at 2&ndash;3 volunteer hours a week.</p>
+        <span class="arrow">Open &rarr;</span>
+      </a>
+      <a class="doc-card" href="volunteer-program.html">
+        <div class="card-top"><span class="card-icon">🙋</span><span class="status urgent">Starts this week</span></div>
+        <h3>Volunteer Program</h3>
+        <p>High school and university outreach plan, with ready-to-send email templates and a this-week action list.</p>
+        <span class="arrow">Open &rarr;</span>
+      </a>
+      <a class="doc-card" href="outreach-tracker.html">
+        <div class="card-top"><span class="card-icon">📋</span><span class="status live">Live tool</span></div>
+        <h3>Outreach Tracker</h3>
+        <p>Every school we've reached out to, its stage, and contact details &mdash; shared and updated live by the whole board.</p>
+        <span class="arrow">Open &rarr;</span>
+      </a>
+      <a class="doc-card" href="recruitment-intro.html">
+        <div class="card-top"><span class="card-icon">📣</span><span class="status live">Ready to send</span></div>
+        <h3>Recruitment One-Pager</h3>
+        <p>External-facing &mdash; who we are, what we run, and the four volunteer roles. Attach this to outreach emails.</p>
+        <span class="arrow">Open &rarr;</span>
+      </a>
+      <a class="doc-card" href="brand-guide.html">
+        <div class="card-top"><span class="card-icon">🎨</span><span class="status live">v0.4 draft</span></div>
+        <h3>Brand Guide</h3>
+        <p>Logo usage, exact colors, program color system, typography, and the house style every doc here follows.</p>
+        <span class="arrow">Open &rarr;</span>
+      </a>
+      <div class="doc-card future">
+        <div class="card-top"><span class="card-icon">💰</span><span class="status">Phase 5</span></div>
+        <h3>Financial Dashboard</h3>
+        <p>Per-program P&amp;L and unit economics. Not built yet &mdash; will live under this Hub once it exists, not the other way around.</p>
+      </div>
+      <div class="doc-card future">
+        <div class="card-top"><span class="card-icon">📱</span><span class="status">Phase 6</span></div>
+        <h3>Social Media Agent</h3>
+        <p>Draft-then-approve publishing workflow. Not built yet.</p>
+      </div>
+      <div class="doc-card future">
+        <div class="card-top"><span class="card-icon">📬</span><span class="status">Phase 3</span></div>
+        <h3>Inbox Automation</h3>
+        <p>info@kcaa.ca triage and digest. Not built yet.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="callout">
+    <strong>Where this lives long-term:</strong> the Hub is the top-level portal &mdash; not a section of some other app. Once it has a real host, the financial dashboard (Phase 5) and everything else here lives <em>under</em> the Hub as a section, the way this page already lists them, not the other way around.
+  </div>
+
+  <footer>KCAA Hub &middot; v0.4</footer>
+</div>
+</body>
+</html>

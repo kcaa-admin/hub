@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KCAA Volunteer Program</title>
+<meta name="description" content="KCAA school and volunteer outreach program plan.">
+</head>
+<body>
+<div id="kcaa-gate" style="position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;">
+  <form id="kcaa-gate-form" style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 26px;box-shadow:var(--shadow);width:100%;max-width:320px;box-sizing:border-box;font-family:-apple-system,'Segoe UI',ui-sans-serif,system-ui,sans-serif;">
+    <p style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue);margin:0 0 8px;">KCAA Hub</p>
+    <h1 style="font-size:19px;font-weight:800;margin:0 0 16px;color:var(--ink);">Enter password</h1>
+    <input type="password" id="kcaa-gate-pw" autocomplete="current-password" placeholder="Password" style="width:100%;font:inherit;font-size:15px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);margin-bottom:12px;box-sizing:border-box;">
+    <button type="submit" style="width:100%;font:inherit;font-size:14px;font-weight:700;padding:10px 16px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;">Enter</button>
+    <p id="kcaa-gate-err" style="display:none;color:var(--red);font-size:13px;margin:12px 0 0;">Incorrect password &mdash; try again.</p>
+  </form>
+</div>
+<script src="gate.js"></script>
+
+<style>
+  :root {
+    --bg: #f3f5f7; --surface: #ffffff; --ink: #0a0a0a; --ink-soft: #565f68; --ink-faint: #889198;
+    --line: #dde2e6; --red: #d01048; --red-soft: #fbe6ec; --blue: #3090d8; --blue-soft: #e6f2fb;
+    --shadow: 0 1px 2px rgba(10,10,10,0.04), 0 8px 24px -14px rgba(10,10,10,0.16);
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    --bg: #101214; --surface: #1a1c1f; --ink: #f1f2f3; --ink-soft: #b4bac0; --ink-faint: #7d848b;
+    --line: #2c2f33; --red: #ef4778; --red-soft: #331a22; --blue: #5cabe6; --blue-soft: #17283a;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 30px -14px rgba(0,0,0,0.6);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101214; --surface: #1a1c1f; --ink: #f1f2f3; --ink-soft: #b4bac0; --ink-faint: #7d848b;
+      --line: #2c2f33; --red: #ef4778; --red-soft: #331a22; --blue: #5cabe6; --blue-soft: #17283a;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 30px -14px rgba(0,0,0,0.6);
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, "Segoe UI", ui-sans-serif, system-ui, sans-serif; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  .page { max-width: 900px; margin: 0 auto; padding: 32px 24px 100px; }
+
+  .back-nav { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--ink-soft); text-decoration: none; padding: 10px 4px; margin-bottom: 20px; }
+  .back-nav:hover, .back-nav:focus-visible { color: var(--blue); }
+  .back-nav .arrow { font-size: 15px; }
+
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 10px; }
+  .eyebrow.status { color: var(--red); }
+  h1 { font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -0.01em; margin: 0 0 12px; text-wrap: balance; }
+  .lede { font-size: 16px; color: var(--ink-soft); max-width: 64ch; margin: 0 0 40px; }
+
+  section.block { margin-bottom: 44px; }
+  h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-faint); margin: 0 0 18px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+  h3 { font-size: 15px; font-weight: 800; margin: 0 0 6px; }
+  p.note { font-size: 13.5px; color: var(--ink-soft); margin: 0; }
+
+  .statline { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-bottom: 12px; box-shadow: var(--shadow); }
+  .stat { background: var(--surface); padding: 14px 18px; }
+  .stat .num { font-variant-numeric: tabular-nums; font-size: 20px; font-weight: 800; color: var(--red); display: block; }
+  .stat .label { font-size: 11px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.07em; margin-top: 2px; }
+
+  .rule-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .rule-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; box-shadow: var(--shadow); }
+
+  .callout { background: var(--red-soft); border: 1px solid color-mix(in srgb, var(--red) 30%, var(--line)); border-radius: 12px; padding: 14px 18px; font-size: 13.5px; margin-top: 14px; }
+  .callout strong { color: var(--red); }
+  .callout.blue { background: var(--blue-soft); border-color: color-mix(in srgb, var(--blue) 30%, var(--line)); }
+  .callout.blue strong { color: var(--blue); }
+
+  .checklist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .checklist li { display: flex; gap: 12px; align-items: flex-start; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; box-shadow: var(--shadow); font-size: 13.5px; }
+  .checklist .box { width: 16px; height: 16px; border: 2px solid var(--ink-faint); border-radius: 4px; flex-shrink: 0; margin-top: 2px; }
+  .checklist .day { font-size: 10.5px; font-weight: 800; text-transform: uppercase; color: var(--red); white-space: nowrap; margin-right: 4px; }
+
+  .role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+  .role-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; box-shadow: var(--shadow); }
+  .role-card .tag { display: inline-block; font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 999px; margin-bottom: 8px; }
+  .role-card .tag.field { background: var(--blue-soft); color: var(--blue); }
+  .role-card .tag.skill { background: var(--red-soft); color: var(--red); }
+
+  .email-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 16px; }
+  .email-head { background: var(--bg); border-bottom: 1px solid var(--line); padding: 10px 18px; font-size: 12px; color: var(--ink-faint); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; }
+  .email-head .to { font-weight: 700; color: var(--ink); }
+  .email-body { padding: 18px 20px; font-size: 13.5px; color: var(--ink); white-space: pre-line; }
+  .email-body .ph { background: var(--blue-soft); color: var(--blue); padding: 0 4px; border-radius: 3px; font-weight: 700; }
+
+  .open-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .open-item { display: flex; gap: 12px; align-items: flex-start; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; box-shadow: var(--shadow); }
+  .open-item .flag { font-size: 11px; font-weight: 800; color: white; background: var(--ink-faint); border-radius: 999px; padding: 2px 9px; flex-shrink: 0; margin-top: 2px; }
+  .open-item .body { font-size: 13.5px; }
+  .open-item .body .h { font-weight: 700; display: block; margin-bottom: 2px; }
+
+  .table-wrap { overflow-x: auto; }
+  table.tracker { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
+  table.tracker th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-faint); padding: 10px 12px; background: var(--bg); border-bottom: 1px solid var(--line); }
+  table.tracker td { padding: 10px 12px; border-bottom: 1px solid var(--line); color: var(--ink-soft); }
+  table.tracker tr:last-child td { border-bottom: none; }
+
+  .tool-card { background: var(--blue-soft); border: 1px solid color-mix(in srgb, var(--blue) 30%, var(--line)); border-radius: 12px; padding: 18px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; justify-content: space-between; }
+  .tool-card .text h3 { color: var(--blue); margin: 0 0 4px; }
+  .tool-card .text p { font-size: 13.5px; color: var(--ink-soft); margin: 0; max-width: 52ch; }
+  .tool-card a.open-btn { display: inline-block; background: var(--blue); color: #fff; font-size: 13.5px; font-weight: 700; padding: 10px 18px; border-radius: 8px; text-decoration: none; white-space: nowrap; }
+  .tool-card a.open-btn:hover, .tool-card a.open-btn:focus-visible { background: color-mix(in srgb, var(--blue) 85%, black); }
+
+  footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-faint); }
+</style>
+
+<div class="page">
+  <a class="back-nav" href="index.html"><span class="arrow">&larr;</span> Back to Hub</a>
+
+  <p class="eyebrow status">Draft &middot; v0.1 &middot; outreach starts week of Sep 10, 2026</p>
+  <h1>Volunteer Program &mdash; Outreach &amp; Recruitment Plan</h1>
+  <p class="lede">The board runs every program itself with no dedicated staff. This is the plan to build a real volunteer pipeline &mdash; starting with high school and university outreach this week &mdash; so the load stops sitting on a handful of people.</p>
+
+  <div class="statline">
+    <div class="stat"><span class="num">2</span><span class="label">outreach emails drafted below</span></div>
+    <div class="stat"><span class="num">5</span><span class="label">this-week action items</span></div>
+    <div class="stat"><span class="num">3</span><span class="label">role categories</span></div>
+  </div>
+
+  <section class="block">
+    <h2>01 &middot; Who we're recruiting, and why they'd say yes</h2>
+    <div class="role-grid">
+      <div class="role-card">
+        <span class="tag field">On-program</span>
+        <h3>Coaching &amp; event-day help</h3>
+        <p class="note">Assisting Learn-to-Skate, hockey, basketball, and ad-hoc events. Good fit for high schoolers needing volunteer hours and university kinesiology/sports management students wanting coaching experience.</p>
+      </div>
+      <div class="role-card">
+        <span class="tag skill">Skills-based</span>
+        <h3>Finance &amp; reporting help</h3>
+        <p class="note">A business/commerce student could help build and maintain the program P&amp;L tracking from <a href="roadmap.html">the roadmap's Phase 4</a> &mdash; real resume-worthy experience, and it takes a build task off the board's plate.</p>
+      </div>
+      <div class="role-card">
+        <span class="tag skill">Skills-based</span>
+        <h3>Social &amp; comms help</h3>
+        <p class="note">A marketing/communications student could run the social accounts described in Phase 6 of the roadmap, using <a href="brand-guide.html">the brand guide</a> as their reference.</p>
+      </div>
+    </div>
+    <div class="callout">
+      <strong>Why this matters beyond extra hands:</strong> two of these three roles map directly onto workstreams the board doesn't have time for (finance, social). Recruiting for skill-matched roles, not just on-ice help, is what actually reduces the 2&ndash;3 hr/week bottleneck described in the roadmap.
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>02 &middot; This week's actions</h2>
+    <ul class="checklist">
+      <li><span class="day">Mon</span><span class="box"></span>Finalize the target list &mdash; 5&ndash;10 high schools and 3&ndash;5 universities near [your city/region] (see open question below)</li>
+      <li><span class="day">Tue</span><span class="box"></span>Find the right contact at each: high school guidance counselor / community-hours coordinator; university co-op office or Korean Students' Association exec</li>
+      <li><span class="day">Wed</span><span class="box"></span>Set up the intake form (Section 04) and a tracking sheet (Section 05)</li>
+      <li><span class="day">Thu</span><span class="box"></span>Send the first batch of outreach emails (templates in Section 03)</li>
+      <li><span class="day">Fri&ndash;Sun</span><span class="box"></span>Follow up with anyone who hasn't responded by early next week; log every contact in the tracker</li>
+    </ul>
+  </section>
+
+  <section class="block">
+    <h2>03 &middot; Outreach templates</h2>
+    <div class="email-card">
+      <div class="email-head"><span>To: <span class="to">High school guidance counselor / volunteer-hours coordinator</span></span><span>Subject: Volunteer opportunities for your students</span></div>
+      <div class="email-body">Hi <span class="ph">[Name]</span>,
+
+I'm reaching out from the Korean Canadian Athletic Association (KCAA), a community non-profit running youth sports programs including learn-to-skate, hockey, and basketball. We're looking for high school volunteers to help with on-ice assistance, event-day support, and program admin &mdash; work that can count toward <span class="ph">[your school's / the province's community-hours requirement]</span>.
+
+Roles are flexible, a few hours on select weekends, and a good fit for students interested in coaching, sports management, or just giving back.
+
+Would you be open to sharing this with interested students, or pointing me to the right contact for volunteer postings at <span class="ph">[School Name]</span>? I've attached a short one-pager with more detail.
+
+Thanks,
+<span class="ph">[Your name]</span>, KCAA
+info@kcaa.ca &middot; kcaa.ca</div>
+    </div>
+    <div class="email-card">
+      <div class="email-head"><span>To: <span class="to">University co-op office / Korean Students' Association</span></span><span>Subject: Volunteer &amp; experience opportunities with KCAA</span></div>
+      <div class="email-body">Hi <span class="ph">[Name]</span>,
+
+I'm with the Korean Canadian Athletic Association (KCAA), a non-profit running youth and adult sports programs (hockey, learn-to-skate, basketball, and more) in <span class="ph">[city]</span>. We're an all-volunteer board building out a student volunteer program this year.
+
+Beyond on-program help, we're especially interested in students who'd want hands-on experience alongside volunteering &mdash; for example:
+&middot; Business/commerce students helping with basic financial tracking and reporting
+&middot; Marketing/communications students helping run our social media
+&middot; Kinesiology/sports management students assisting with coaching and program delivery
+
+Would it be possible to share this with your members, or point me to your volunteer/co-op coordinator? I've attached a short one-pager with more detail.
+
+Thanks,
+<span class="ph">[Your name]</span>, KCAA
+info@kcaa.ca &middot; kcaa.ca</div>
+    </div>
+    <p class="note">Both templates lean on the voice rules in <a href="brand-guide.html">the brand guide, section 08</a> &mdash; plain-spoken, community-first, no jargon. Attach or link the <a href="recruitment-intro.html">recruitment one-pager</a> with both &mdash; it covers who we are, what we run, and the same four role categories in more depth than an email can.</p>
+  </section>
+
+  <section class="block">
+    <h2>04 &middot; Intake</h2>
+    <div class="rule-grid">
+      <div class="rule-card">
+        <h3>One-pager</h3>
+        <p class="note">The <a href="recruitment-intro.html">recruitment one-pager</a> is what actually gets attached or linked in outreach &mdash; who we are, what we run, why volunteer, and the four role categories, ending in a direct email CTA.</p>
+      </div>
+      <div class="rule-card">
+        <h3>Google Form</h3>
+        <p class="note">Name, contact info, school/program, availability, role interest (on-program / finance / social / other), and any relevant experience. Not built yet &mdash; the one-pager's CTA defaults to email until this exists.</p>
+      </div>
+      <div class="rule-card">
+        <h3>Response routing</h3>
+        <p class="note">Once the form exists, responses feed straight into the tracker below &mdash; no separate inbox to check, which matters until <a href="roadmap.html">Phase 3's inbox automation</a> exists.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>05 &middot; Outreach tracker</h2>
+    <div class="tool-card">
+      <div class="text">
+        <h3>Live tracker, not a static sheet</h3>
+        <p>Summary by milestone at the top, every school's stage and contact details in the middle, and a form at the bottom to log new outreach &mdash; shared live with the whole board.</p>
+      </div>
+      <a class="open-btn" href="outreach-tracker.html">Open the tracker &rarr;</a>
+    </div>
+    <p class="note" style="margin-top:10px;">Stages run Not Contacted &rarr; Contacted &rarr; In Conversation &rarr; Agreed to Partner &rarr; Active Partner, plus a separate Declined state. A school counts as an Active Partner once the poster is up and/or volunteers have been sent &mdash; whichever comes first.</p>
+  </section>
+
+  <section class="block">
+    <h2>06 &middot; Open questions</h2>
+    <ul class="open-list">
+      <li class="open-item"><span class="flag">NEEDED</span><span class="body"><span class="h">City / region</span>The actual target list of high schools and universities depends on where KCAA operates &mdash; provide this to turn Section 02's placeholder into named targets.</span></li>
+      <li class="open-item"><span class="flag">DECIDE</span><span class="body"><span class="h">Community-hours hook</span>If KCAA is in Ontario, the mandatory 40-hour community involvement requirement for high schoolers is a strong pitch angle &mdash; confirm province so the email template can name it directly instead of a placeholder.</span></li>
+      <li class="open-item"><span class="flag">DECIDE</span><span class="body"><span class="h">Coordinator role</span>Once volunteers start responding, someone needs to own follow-up and onboarding &mdash; decide if that's you initially or gets handed to the first strong volunteer.</span></li>
+    </ul>
+  </section>
+
+  <footer>KCAA internal &middot; volunteer program plan v0.2</footer>
+</div>
+</body>
+</html>
