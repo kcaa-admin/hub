@@ -1,0 +1,756 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KCAA Board Meeting Minutes</title>
+<meta name="description" content="Archive of KCAA board meeting minutes, and a live tool for taking minutes during a meeting.">
+<style>
+  :root {
+    --bg: #f3f5f7; --surface: #ffffff; --ink: #0a0a0a; --ink-soft: #565f68; --ink-faint: #889198;
+    --line: #dde2e6; --red: #d01048; --red-soft: #fbe6ec; --blue: #3090d8; --blue-soft: #e6f2fb;
+    --green: #2f8a4e; --green-soft: #e6f5ea;
+    --shadow: 0 1px 2px rgba(10,10,10,0.04), 0 8px 24px -14px rgba(10,10,10,0.16);
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    --bg: #101214; --surface: #1a1c1f; --ink: #f1f2f3; --ink-soft: #b4bac0; --ink-faint: #7d848b;
+    --line: #2c2f33; --red: #ef4778; --red-soft: #331a22; --blue: #5cabe6; --blue-soft: #17283a;
+    --green: #43b06a; --green-soft: #17301f;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 30px -14px rgba(0,0,0,0.6);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101214; --surface: #1a1c1f; --ink: #f1f2f3; --ink-soft: #b4bac0; --ink-faint: #7d848b;
+      --line: #2c2f33; --red: #ef4778; --red-soft: #331a22; --blue: #5cabe6; --blue-soft: #17283a;
+      --green: #43b06a; --green-soft: #17301f;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 30px -14px rgba(0,0,0,0.6);
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, "Segoe UI", ui-sans-serif, system-ui, sans-serif; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  .page { max-width: 900px; margin: 0 auto; padding: 32px 24px 100px; }
+
+  .back-nav { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--ink-soft); text-decoration: none; padding: 10px 4px; margin-bottom: 16px; }
+  .back-nav:hover, .back-nav:focus-visible { color: var(--blue); }
+  .back-nav .arrow { font-size: 15px; }
+
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue); margin: 0 0 10px; }
+  h1 { font-size: clamp(26px, 4vw, 36px); font-weight: 800; letter-spacing: -0.01em; margin: 0 0 12px; text-wrap: balance; }
+  .lede { font-size: 15.5px; color: var(--ink-soft); max-width: 66ch; margin: 0 0 28px; }
+
+  section.block { margin-bottom: 40px; }
+  h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-faint); margin: 0 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--line); display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  h2 .h2-note { font-size: 11px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--ink-faint); }
+
+  .sync-banner { display: none; align-items: center; gap: 10px; background: var(--red-soft); border: 1px solid color-mix(in srgb, var(--red) 30%, var(--line)); color: var(--red); border-radius: 10px; padding: 10px 14px; font-size: 13px; font-weight: 600; margin-bottom: 22px; }
+  .sync-banner.show { display: flex; }
+
+  /* --- tabs --- */
+  .tab-row { display: flex; gap: 6px; margin-bottom: 24px; border-bottom: 1px solid var(--line); }
+  .tab-btn { font: inherit; font-size: 13.5px; font-weight: 700; color: var(--ink-faint); background: none; border: none; border-bottom: 2px solid transparent; padding: 10px 4px; margin-bottom: -1px; cursor: pointer; margin-right: 18px; }
+  .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* --- archive: year groups + meeting cards --- */
+  .year-group { margin-bottom: 22px; }
+  .year-label { font-size: 12px; font-weight: 800; color: var(--ink-faint); letter-spacing: 0.06em; margin: 0 0 10px; }
+  .meeting-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 10px; overflow: hidden; }
+  .meeting-summary { display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .meeting-summary .date { font-size: 15px; font-weight: 800; color: var(--ink); min-width: 150px; }
+  .meeting-summary .meta { font-size: 12.5px; color: var(--ink-faint); flex: 1; }
+  .status-pill { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+  .status-pill.final { background: var(--blue-soft); color: var(--blue); }
+  .status-pill.draft { background: var(--red-soft); color: var(--red); }
+  .chevron { font-size: 12px; color: var(--ink-faint); transition: transform .15s ease; flex-shrink: 0; }
+  .meeting-card.open .chevron { transform: rotate(90deg); }
+  .meeting-body { display: none; padding: 4px 16px 18px; border-top: 1px solid var(--line); }
+  .meeting-card.open .meeting-body { display: block; }
+
+  .mb-section { margin-top: 16px; }
+  .mb-h3 { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-faint); margin: 0 0 8px; }
+  .attend-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .attend-chip { font-size: 12px; padding: 3px 10px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); color: var(--ink-soft); }
+  .attend-chip.present { color: var(--green); border-color: color-mix(in srgb, var(--green) 35%, var(--line)); background: var(--green-soft); }
+  .row-list { display: flex; flex-direction: column; gap: 7px; }
+  .row-item { font-size: 13px; color: var(--ink); padding: 8px 10px; background: var(--bg); border-radius: 8px; }
+  .row-item .tag { font-weight: 800; color: var(--blue); margin-right: 6px; }
+  .row-item .sub { color: var(--ink-soft); }
+  .action-item { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; padding: 8px 10px; background: var(--bg); border-radius: 8px; }
+  .action-item input[type="checkbox"] { margin-top: 2px; accent-color: var(--green); flex-shrink: 0; }
+  .action-item.done .a-text { text-decoration: line-through; color: var(--ink-faint); }
+  .due-badge { font-size: 10.5px; font-weight: 800; color: var(--red); background: var(--red-soft); border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+  .next-callout { background: var(--blue-soft); border: 1px solid color-mix(in srgb, var(--blue) 30%, var(--line)); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: var(--ink); }
+  .next-callout strong { color: var(--blue); }
+  .card-actions { margin-top: 14px; }
+
+  .empty-state { background: var(--surface); border: 1px dashed var(--line); border-radius: 12px; padding: 28px 20px; text-align: center; color: var(--ink-faint); font-size: 13.5px; }
+
+  /* --- editor --- */
+  .editor-toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+  .save-indicator { font-size: 12px; color: var(--ink-faint); }
+  .save-indicator.saving { color: var(--blue); }
+  .save-indicator.saved { color: var(--green); }
+
+  .form-field label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 5px; }
+  .form-field input[type="text"], .form-field input[type="date"], .form-field select, .form-field textarea {
+    width: 100%; font: inherit; font-size: 14px; padding: 9px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  }
+  .form-field textarea { resize: vertical; min-height: 52px; }
+  .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px 16px; margin-bottom: 8px; }
+
+  .edit-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px 18px; box-shadow: var(--shadow); }
+  .edit-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; align-items: end; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .edit-row:last-of-type { border-bottom: none; }
+  .edit-row .full { grid-column: 1 / -1; }
+  .edit-row input[type="text"], .edit-row input[type="date"] { width: 100%; font: inherit; font-size: 13.5px; padding: 8px 9px; border-radius: 7px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+  .edit-row .checks { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-soft); }
+  .row-remove { background: none; border: none; color: var(--ink-faint); font-size: 12px; font-weight: 700; cursor: pointer; padding: 6px 4px; justify-self: start; }
+  .row-remove:hover { color: var(--red); }
+  .btn { font: inherit; font-size: 13.5px; font-weight: 700; padding: 9px 16px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; }
+  .btn.primary { background: var(--blue); color: #fff; }
+  .btn.primary:hover, .btn.primary:focus-visible { background: color-mix(in srgb, var(--blue) 85%, black); }
+  .btn.ghost { background: none; border-color: var(--line); color: var(--ink-soft); }
+  .btn.ghost:hover, .btn.ghost:focus-visible { background: var(--line); }
+  .btn.small { font-size: 12.5px; padding: 6px 12px; }
+  .add-row-btn { font-size: 12.5px; font-weight: 700; color: var(--blue); background: var(--blue-soft); border: none; border-radius: 7px; padding: 7px 12px; cursor: pointer; margin-top: 10px; }
+  .add-row-btn:hover { background: color-mix(in srgb, var(--blue) 20%, var(--blue-soft)); }
+
+  .legacy-note { font-size: 12px; color: var(--ink-faint); font-style: italic; margin-bottom: 8px; }
+
+  footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-faint); }
+</style>
+</head>
+<body>
+<div id="kcaa-gate" style="position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;">
+  <form id="kcaa-gate-form" style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 26px;box-shadow:var(--shadow);width:100%;max-width:320px;box-sizing:border-box;font-family:-apple-system,'Segoe UI',ui-sans-serif,system-ui,sans-serif;">
+    <p style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue);margin:0 0 8px;">KCAA Hub</p>
+    <h1 style="font-size:19px;font-weight:800;margin:0 0 16px;color:var(--ink);">Enter password</h1>
+    <input type="password" id="kcaa-gate-pw" autocomplete="current-password" placeholder="Password" style="width:100%;font:inherit;font-size:15px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);margin-bottom:12px;box-sizing:border-box;">
+    <button type="submit" style="width:100%;font:inherit;font-size:14px;font-weight:700;padding:10px 16px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;">Enter</button>
+    <p id="kcaa-gate-err" style="display:none;color:var(--red);font-size:13px;margin:12px 0 0;">Incorrect password &mdash; try again.</p>
+  </form>
+</div>
+<script src="gate.js"></script>
+<script type="application/json" id="legacyData">[{"date":"2025-06-03","quorum":"Y","status":"final","attendance":[{"name":"Danny K","present":true,"roles":["Hockey","Partnerships"]},{"name":"Randy K","present":true,"roles":["Basketball","Website"]},{"name":"Danny H","present":true,"roles":["Finance","Baseketball"]},{"name":"Josh K","present":true,"roles":["Baseball"]},{"name":"Michelle C","present":true,"roles":["Golf","Communications"]},{"name":"Henna C","present":true,"roles":["Social Media","Baseball"]},{"name":"Caitlin K","present":true,"roles":["Hockey","Golf","Soccer"]},{"name":"Joel C","present":false,"roles":["Baseball","Golf"]},{"name":"Aparna Y","present":true,"roles":["Soccer","Governance","Golf"]},{"name":"Ernie J","present":true,"roles":["Governance","Finance","Website"]}],"agendaDiscussion":["1,Baseball (BS),Progress Report ,Coaches, 2 Day Camp, Tournament Focused, Permits,1,Baseball,Need a curriculum","2,Basketball (BK),Progress Report ,Keep or do something different? ,2,Baseball,Location/Diamon booking might be complicated,Pending to check with city of toronto on possibility to book in advance more than 14 days?","3,Hockey (HK),Progress Report ,Split program by skating skill level, adding rink, volunteer structure, coaches, men's league, elite team,3,Baseball,Coach Confirmed : Royce","4,Golf (GF) ,Progress Report ,Copper creek summer camp, Caitlin to check w/ Angus,4,Baseball,Start planning ! ,Including sorting out insurance","5,Soccer (SO),Progress Report ,Soccer contact via Danny K (on hold),5,Basketball,Annual Retrospective,No more work to do beyond retro","6,Communications (CO),Progress Report ,Newsletter, Email Marketing,6,Hockey,Booking Ice in progress (TBC)","7,Social Media (SM),Progress Report ,Posting Schedule, Braydn Chung story, Nolan Story,7,Hockey,Might add 1 hour of adult pick-up","8,Governance (GO),Progress Report ,File Clean Up, Customer DB (MDM),8,Hockey,Pending confirmation of new coaches \u2192 curriculum","9,Golf,Start group chat"],"oldBusiness":["10,Golf,Start planning kids' clinic (1.5 hors)","1,Social Media,Create annual calendar,Define calendar events & posting schedule with framework/outline content,12,Communications,Check in with Miriam","2,Communications,Draft monthly newsletter,Monthly newsletter for parents & members (star of the week, program highlight...etc),13,Communications,Review operation of email marketing tool","3,Communications,Posters/Posts - Upcoming ,Create posts/posters/materials for upcoming programs (summer/fall),14,Governance,Create MDM for Customer DB","4,Communications,Parent Testimonal Video,Record/Edit parent testimonial video for use in website/posts/etc...,15,New Biz,PocketClass meeting set for Jun 18 - 18:30 (TBC)","5,Partnerships,Define framework for partnerships,Social Media, Legal & mechanics of partnering with other orgs"],"actionItems":[{"action":"Define location (Call & Check for availability)","category":"BS","assignedTo":"Henna","dueDate":"6/5","notes":"","done":false},{"action":"Start planning baseball clinic/workshop","category":"BS","assignedTo":"Henna","dueDate":"6/9","notes":"","done":false},{"action":"Season Close & Retrospective","category":"BK","assignedTo":"Randy","dueDate":"TBC","notes":"","done":false},{"action":"Book Ice (Kids & Men's)","category":"HK","assignedTo":"Danny K","dueDate":"TBC","notes":"Additional ice for kids (splitting program) & additiona ice for men (pick up hour)","done":false},{"action":"New Coaches \u2192 curriculum for L2S & Hockey Dev","category":"HK","assignedTo":"Danny K","dueDate":"TBC","notes":"","done":false},{"action":"Create group chat with workstream","category":"GF","assignedTo":"Michelle","dueDate":"6/4","notes":"","done":false},{"action":"Start planning kids' clinic","category":"GF","assignedTo":"Michelle","dueDate":"6/9","notes":"","done":false},{"action":"Check in with KLDU on partnering","category":"SO","assignedTo":"Danny K","dueDate":"6/11","notes":"","done":false},{"action":"Create communications chat group","category":"CO","assignedTo":"Michelle","dueDate":"6/4","notes":"","done":false},{"action":"Review email marketing tool use","category":"GO","assignedTo":"Ernie","dueDate":"6/9","notes":"Share quick-guide on using Vertical Response","done":false},{"action":"Create MDM for Customer DB","category":"GO","assignedTo":"Ernie","dueDate":"6/16","notes":"Consolidate exisitng customer db and set rules/policies for PII","done":false},{"action":"Pocket Class meeting for Jun 18 @ 18:30","category":"New","assignedTo":"Aparna","dueDate":"6/18","notes":"Location & Time TBC","done":false}],"nextMeeting":{"date":"2025-07-03","location":"TBD","objectives":"Make progress on upcoming events/actions for Aug ~ September"},"nextDiscussion":["1,Baseball,Need a curriculum","2,Baseball,Location/Diamon booking might be complicated,Pending to check with city of toronto on possibility to book in advance more than 14 days?","3,Baseball,Coach Confirmed : Royce","4,Baseball,Start planning ! ,Including sorting out insurance","5,Basketball,Annual Retrospective,No more work to do beyond retro","6,Hockey,Booking Ice in progress (TBC)","7,Hockey,Might add 1 hour of adult pick-up","8,Hockey,Pending confirmation of new coaches \u2192 curriculum","9,Golf,Start group chat","10,Golf,Start planning kids' clinic (1.5 hors)","11,Soccer,Danny to check with KLDU on partnering","12,Communications,Check in with Miriam","13,Communications,Review operation of email marketing tool","14,Governance,Create MDM for Customer DB","15,New Biz,PocketClass meeting set for Jun 18 - 18:30 (TBC)","```"],"updatedAt":"2026-09-13T00:00:00.000Z","source":"sheet-import"},{"date":"2025-07-08","quorum":"Y","status":"final","attendance":[{"name":"Danny K","present":true,"roles":["Hockey","Partnerships"]},{"name":"Randy K","present":true,"roles":["Basketball","Website"]},{"name":"Danny H","present":false,"roles":["Finance","Baseketball"]},{"name":"Josh K","present":false,"roles":["Baseball"]},{"name":"Michelle C","present":true,"roles":["Golf","Communications"]},{"name":"Henna C","present":true,"roles":["Social Media","Baseball"]},{"name":"Caitlin K","present":true,"roles":["Hockey","Golf","Soccer"]},{"name":"Joel C","present":true,"roles":["Baseball","Golf"]},{"name":"Miriam P","present":true,"roles":["Communications"]},{"name":"Aparna Y","present":true,"roles":["Soccer","Governance","Golf"]},{"name":"Ernie J","present":true,"roles":["Governance","Finance","Website"]}],"agendaDiscussion":["1,Baseball (BS),Progress Report ,Diamond Confirmed - pending confirmation,1,Baseball,Need a curriculum","2,Basketball (BK),Progress Report ,Season Close & Retrospective ? ,2,Baseball,Location/Diamon booking might be complicated,Pending to check with city of toronto on possibility to book in advance more than 14 days?","3,Hockey (HK),Progress Report ,Updates on Splitting Program ? / Curricula and Coaches ? ,3,Baseball,Coach Confirmed : Royce","4,Golf (GF) ,Progress Report ,Update on group chat & progress,4,Baseball,Start planning ! ,Including sorting out insurance","5,Soccer (SO),Progress Report ,KLDU - Who has gone to check it out ? ,5,Basketball,Annual Retrospective,No more work to do beyond retro","6,Communications (CO),Progress Report ,Newsletter, Email Marketing - draft in progress? ,6,Hockey,Booking Ice in progress (TBC)","7,Social Media (SM),Progress Report ,Posting Schedule, Braydn Chung story, Nolan Story,7,Hockey,Might add 1 hour of adult pick-up","8,Governance (GO),Progress Report ,File Clean Up / Whatsapp Business / CustomerMDM ,8,Hockey,Pending confirmation of new coaches \u2192 curriculum","9,Golf,Start group chat"],"oldBusiness":["10,Golf,Start planning kids' clinic (1.5 hors)","1,Social Media,Create annual calendar,Define calendar events & posting schedule with framework/outline content,12,Communications,Check in with Miriam","2,Communications,Draft monthly newsletter,Monthly newsletter for parents & members (star of the week, program highlight...etc),13,Communications,Review operation of email marketing tool","3,Communications,Posters/Posts - Upcoming ,Create posts/posters/materials for upcoming programs (summer/fall),14,Governance,Create MDM for Customer DB","4,Communications,Parent Testimonal Video,Record/Edit parent testimonial video for use in website/posts/etc...,15,New Biz,PocketClass meeting set for Jun 18 - 18:30 (TBC)","5,Partnerships,Define framework for partnerships,Social Media, Legal & mechanics of partnering with other orgs"],"actionItems":[{"action":"Define location (Call & Check for availability)","category":"BS","assignedTo":"Henna","dueDate":"7/8","notes":"Done","done":false},{"action":"Insurance Pending","category":"BS","assignedTo":"Henna","dueDate":"7/21","notes":"Pending confirmation","done":false},{"action":"Season Close & Retrospective","category":"BK","assignedTo":"Randy","dueDate":"TBC","notes":"Pending to do with Dennis & Francis","done":false},{"action":"Book Ice (Kids & Men's)","category":"HK","assignedTo":"Danny K","dueDate":"TBC","notes":"Need to define schedule first (Catilin)","done":false},{"action":"New Coaches \u2192 curriculum for L2S & Hockey Dev","category":"HK","assignedTo":"Danny K","dueDate":"7/30","notes":"Danny to define","done":false},{"action":"Create group chat with workstream","category":"GF","assignedTo":"Michelle","dueDate":"6/4","notes":"Done","done":false},{"action":"Start planning kids' clinic","category":"GF","assignedTo":"Michelle","dueDate":"7/11","notes":"Define Date - Caitlin to take on prime role, start small  - define tbc","done":false},{"action":"Check in with KLDU on partnering","category":"SO","assignedTo":"Danny K","dueDate":"7/30","notes":"Soccer 7/9 - 18:00 - 19:30 (Near Hillcrest Mall)","done":false},{"action":"Create communications chat group","category":"CO","assignedTo":"Miriam","dueDate":"7/30","notes":"End of Year draft!  2024 recap to send out July, need access to stuff (drive)","done":false},{"action":"Review email marketing tool use","category":"GO","assignedTo":"Ernie","dueDate":"7/13","notes":"Share quick-guide on using Vertical Response","done":false},{"action":"Create MDM for Customer DB","category":"GO","assignedTo":"Ernie","dueDate":"7/13","notes":"Consolidate exisitng customer db and set rules/policies for PII","done":false},{"action":"Pocket Class meeting for Jun 18 @ 18:30","category":"New","assignedTo":"Aparna","dueDate":"TBC","notes":"Location & Time TBC - aparna to reschdule","done":false}],"nextMeeting":{"date":"2025-08-07","location":"TBD","objectives":"Make progress on upcoming events/actions for Aug ~ September"},"nextDiscussion":["1,Baseball,Split into 2 Sessions,August 17th from Noon to 4PM  (Also need volunteers at least 4 + 3 ) - ask baseball dads!  -  2 diamonds!!","2,Baseball,T-Shirts / Merch / Goodies? ,TBD","3,Baseball,Insurance pending,Including sorting out insurance","4,Baseball,Age grouping? ,Ask & Determine so we can answer parents / add to the poster (6 to 13)","5,Basketball,Annual Retrospective,Book a time to go over stuff (Danny & Randy with Dennis & Francis)","6,Hockey,Booking Ice in progress,Define schedule and share with danny to book","7,Hockey,Might add 1 hour of adult pick-up,Not doing this now","8,Hockey,Pending confirmation of new coaches \u2192 curriculum,Danny to do","9,Golf,Start group chat,Done","10,Golf,Start planning kids' clinic (1.5 hors) ,TBC - depending on bandwidth for Caitlin","11,Soccer,Danny to check with KLDU on partnering,On Hold","12,Communications,Check in with Miriam ,Working session held ~ draft in progress - expected 1st version out in July","13,Communications,Review operation of email marketing tool ,TBD","14,Governance,Create MDM for Customer DB,In Progress","15,New Biz,PocketClass meeting set for Jun 18 - 18:30 (TBC),Re-Scheduling","```"],"updatedAt":"2026-09-13T00:00:00.000Z","source":"sheet-import"},{"date":"2025-09-02","quorum":"Y","status":"final","attendance":[{"name":"Danny K","present":true,"roles":["Hockey","Partnerships"]},{"name":"Randy K","present":true,"roles":["Basketball","Website"]},{"name":"Danny H","present":true,"roles":["Finance","Baseketball"]},{"name":"Josh K","present":false,"roles":["Baseball"]},{"name":"Michelle C","present":false,"roles":["Golf","Communications"]},{"name":"Henna C","present":true,"roles":["Social Media","Baseball"]},{"name":"Caitlin K","present":true,"roles":["Hockey","Golf","Soccer"]},{"name":"Joel C","present":true,"roles":["Baseball","Golf"]},{"name":"Miriam P","present":true,"roles":["Communications"]},{"name":"Aparna Y","present":false,"roles":["Soccer","Governance","Golf"]},{"name":"Ernie J","present":false,"roles":["Governance","Finance","Website"]}],"agendaDiscussion":["1,Baseball (BS),Complete,Feedback - what went well, what can we do better for next time,1,Baseball,Need a curriculum","2,Basketball (BK),Progress Report ,Need to follow-up to see if it's being continued,2,Baseball,Location/Diamon booking might be complicated,Pending to check with city of toronto on possibility to book in advance more than 14 days?","3,Hockey (HK),Progress Report ,Need to boost promo for learn2skate and future stars programming,3,Baseball,Coach Confirmed : Royce","4,Golf (GF) ,Progress Report ,Tabled,4,Baseball,Start planning ! ,Including sorting out insurance","5,Soccer (SO),Progress Report ,Tabled,5,Basketball,Annual Retrospective,No more work to do beyond retro","6,Communications (CO),Progress Report ,WhatsApp community? Would be helpful right now for promo,6,Hockey,Booking Ice in progress (TBC)","7,Social Media (SM),Progress Report ,Need additional promo and create hockey poster in Korean,7,Hockey,Might add 1 hour of adult pick-up","8,Governance (GO),Progress Report ,Customer Database Completed - shared w/ Comms,8,Hockey,Pending confirmation of new coaches \u2192 curriculum","9,Golf,Start group chat"],"oldBusiness":["10,Golf,Start planning kids' clinic (1.5 hors)","1,Social Media,Create annual calendar,Define calendar events & posting schedule with framework/outline content,12,Communications,Check in with Miriam","2,Communications,Draft monthly newsletter,Monthly newsletter for parents & members (star of the week, program highlight...etc),13,Communications,Review operation of email marketing tool","3,Communications,Posters/Posts - Upcoming ,Create posts/posters/materials for upcoming programs (summer/fall),14,Governance,Create MDM for Customer DB","4,Communications,Parent Testimonal Video,Record/Edit parent testimonial video for use in website/posts/etc...,15,New Biz,PocketClass meeting set for Jun 18 - 18:30 (TBC)","5,Partnerships,Define framework for partnerships,Social Media, Legal & mechanics of partnering with other orgs"],"actionItems":[{"action":"Think of potential for winter camp session","category":"BS","assignedTo":"Henna","dueDate":"10/7","notes":"Pending","done":false},{"action":"Promote Hockey","category":"HK","assignedTo":"Caitlin","dueDate":"TBC","notes":"Continue to post on IG, \"korean mom groups\", posters at grocerie stores or resturaunts - go old school","done":false},{"action":"Email Korean Times","category":"HK","assignedTo":"Caitlin","dueDate":"ASAP","notes":"Send out email to Korean TImes to get ad on newspaper for more traction","done":false},{"action":"Another Newsletter","category":"HK","assignedTo":"Miriam","dueDate":"TBC","notes":"Have a recap of baseball with hockey info and maybe basketball","done":false},{"action":"Hockey Poster in Korean","category":"HK","assignedTo":"Caitlin","dueDate":"9/10","notes":"Create our hockey poster but in Korean and print in good quality to post around","done":false},{"action":"Basketball discussion","category":"BK","assignedTo":"Randy","dueDate":"TBC","notes":"Find out if basketball will be continuing","done":false},{"action":"WhatsApp community","category":"Ernie","assignedTo":"TBC","dueDate":"Any updates in terms of how the WhatsApp community is going","notes":"","done":false},{"action":"Pickleball?","category":"Randy","assignedTo":"TBC","dueDate":"Look into social event for pickleball at promenade","notes":"","done":false}],"nextMeeting":{"date":"2025-10-02","location":"Danny K's","objectives":"Updates and create bags for Hockey programs"},"nextDiscussion":["1,Baseball,Feedback on camp,Overall went well - advanced kids seem like they want it more often (same goes for beginner,\u2190 Fill here with discussion items as the meeting progresses","2,Baseball,Feedback on camp,Could have additional time for setup and clean up  - work on admin stuff so beginning and end run smoothly","3,Baseball,Potential changes for next time,Maybe a better time slot and better promo/notice - maybe advertise in the Korean Times for next time","4,Hockey,Promo,Need to push promo for more sign ups - currently only have 9 total for learn 2 skate and future stars","5,Hockey,Promo,Need to think of different promo and blast ads","6,Hockey,Jersey,Order is currently being processed - hope to have it in by Sept 28","7,Basketball,Continuing?,Randy to discuss","8,Pickleball/,Potential adult tourney/social,Maybe do a pickleball tourney or social for adults - have different levels for those that want to learn or already know","```"],"updatedAt":"2026-09-13T00:00:00.000Z","source":"sheet-import"},{"date":"2025-10-09","quorum":"Y","status":"final","attendance":[{"name":"Danny K","present":true,"roles":["Hockey","Partnerships"]},{"name":"Randy K","present":true,"roles":["Basketball","Website"]},{"name":"Danny H","present":false,"roles":["Finance","Baseketball"]},{"name":"Josh K","present":true,"roles":["Baseball","Hockey"]},{"name":"Michelle C","present":false,"roles":["Golf","Communications"]},{"name":"Henna C","present":false,"roles":["Social Media","Baseball"]},{"name":"Caitlin K","present":true,"roles":["Hockey","Golf","Soccer"]},{"name":"Joel C","present":true,"roles":["Baseball","Golf"]},{"name":"Miriam P","present":true,"roles":["Communications","Hockey"]},{"name":"Ernie J","present":true,"roles":["Governance","Finance","Hockey"]}],"agendaDiscussion":["1,Baseball (BS),Complete,Finding facilities during winter is tough... Can Royce find a spot? Scarborough? \u2192 whitby/oshawa?,1,Baseball,Need a curriculum","2,Basketball (BK),Progress Report ,Cancelled for next year - same format new name / dropped us \u2192 for discussion at the other event (summit) \u2192 partner with ccya? (clem),2,Baseball,Location/Diamon booking might be complicated,Pending to check with city of toronto on possibility to book in advance more than 14 days?","3,Hockey (HK),Progress Report ,Status on registrations, prep for launch, make table top QR code for signup poster, status on jerseys? ,3,Baseball,Coach Confirmed : Royce","4,Golf (GF) ,Progress Report ,Tabled,4,Baseball,Start planning ! ,Including sorting out insurance","5,Soccer (SO),Progress Report ,Tabled,5,Basketball,Annual Retrospective,No more work to do beyond retro","6,Communications (CO),Progress Report ,Starting Hockey Group and KCAA larger community group ,6,Hockey,Booking Ice in progress (TBC)","7,Social Media (SM),Progress Report ,Poster Done,7,Hockey,Might add 1 hour of adult pick-up","8,Governance (GO),Progress Report ,Need to do more! ,8,Hockey,Pending confirmation of new coaches \u2192 curriculum","9,New Biz,Progress Report ,Pickleball? Social? End of Year? - some other venue / activity? / party room michelle? hehe / bar? ,9,Golf,Start group chat"],"oldBusiness":["10,Golf,Start planning kids' clinic (1.5 hors)","1,Social Media,Create annual calendar,Define calendar events & posting schedule with framework/outline content,12,Communications,Check in with Miriam","2,Communications,Draft monthly newsletter,Monthly newsletter for parents & members (star of the week, program highlight...etc),13,Communications,Review operation of email marketing tool","3,Communications,Posters/Posts - Upcoming ,Create posts/posters/materials for upcoming programs (summer/fall),14,Governance,Create MDM for Customer DB","4,Communications,Parent Testimonal Video,Record/Edit parent testimonial video for use in website/posts/etc...,15,New Biz,PocketClass meeting set for Jun 18 - 18:30 (TBC)","5,Partnerships,Define framework for partnerships,Social Media, Legal & mechanics of partnering with other orgs"],"actionItems":[{"action":"Think of potential for winter camp session","category":"BS","assignedTo":"Josh K","dueDate":"10/31","notes":"Pending / biggest bottleneck is facility","done":false},{"action":"Discussion with TKT on Basketball Program","category":"BB","assignedTo":"Randy K","dueDate":"11/8","notes":"","done":false},{"action":"Discussion with Clem on Partnership : B-ball","category":"BB","assignedTo":"Danny K","dueDate":"11/8","notes":"","done":false},{"action":"Make Bags for Hockey Program","category":"HK","assignedTo":"Danny K","dueDate":"10/17","notes":"","done":false},{"action":"Set-up Hockey WhatsApp Channel","category":"HK","assignedTo":"Ernie J","dueDate":"10/12","notes":"","done":false},{"action":"Send announcement to parents: WhatsApp Channel","category":"HK","assignedTo":"Ernie J","dueDate":"10/13","notes":"","done":false},{"action":"Follow-up on pending individuals","category":"HK","assignedTo":"Ernie J","dueDate":"10/17","notes":"","done":false},{"action":"Confirm Swag for Hockey Bags","category":"HK","assignedTo":"Danny K","dueDate":"10/10","notes":"Already confirmed with Peter Yoo - pending John Cho","done":false},{"action":"Exploratory Golf Tourney","category":"GO","assignedTo":"Caitilin K","dueDate":"10/13","notes":"Initial working group chat : Danny, Michelle, Caitlin, Ernie","done":false}],"nextMeeting":{"date":"2025-11-08","location":"TBD","objectives":"Define Golf Tourney!"},"nextDiscussion":["1,Baseball,Evaluate Winter Camp Feasibility,First step is facility search -  Henna/Royce or Josh? ,\u2190 Fill here with discussion items as the meeting progresses","2,Basketball,TKT Cancelled,TKT dropped us and doing something on their own - to discuss potential partnership with Clem & CCYAA","3,Hockey,Registration,Regular Programs: Learn 2 Skate & Hockey Dev - completed","4,Hockey,Jerseys,Incoming shipment + existing inventory enough to cover","5,Hockey,Coffee Run,Ernie & Caitlin to do Oct - find alternative solution by Nov (someone who lives by to pick up in exchange for discount)","6,Hockey,Jersey,Order is currently being processed - hope to have it in by Sept 28","7,Hockey,Changes to Program,This year program changing format + 1 additional hour of ice for new program (Tigers)","8,Hockey,New Development Team & AAA Team,New program includes 2 new kids teams (+ Sponsorship package)","9,Hockey,Swag for Onboarding Kit,Need to ask Peter Yoo and John Cho for Swag","10,Hockey,Setup Hockey WhatsApp Group,Need to fill in the roster into the broadcast channel","11,Hockey,Send out communication / announcement,Announce Whatsapp channel","12,Golf,New Biz - KCSF Tourney,Explore Golf Tournament for 2026 w/ KCSF (Copper Creek or Unionville)","13,Other,KCSF Gala,Splitting out table on our own - for 10 PAX","14,Other,Consider End-of-Year Activity/Party,Michelle had mentioned her party room previously.","```"],"updatedAt":"2026-09-13T00:00:00.000Z","source":"sheet-import"},{"date":"2025-11-04","quorum":"Y","status":"final","attendance":[{"name":"Danny K","present":true,"roles":["Hockey","Partnerships"]},{"name":"Randy K","present":true,"roles":["Basketball","Website"]},{"name":"Danny H","present":false,"roles":["Baseketball"]},{"name":"Josh K","present":false,"roles":["Hockey","Social Media"]},{"name":"Michelle C","present":false,"roles":["Communications"]},{"name":"Henna C","present":true,"roles":["Social Media","Baseball"]},{"name":"Caitlin K","present":true,"roles":["Hockey","Golf","Soccer"]},{"name":"Joel C","present":true,"roles":["Social Media","Baseball","Golf"]},{"name":"Miriam P","present":true,"roles":["Communications","Hockey","Partnerships"]},{"name":"Ernie J","present":true,"roles":["Governance","Finance","Hockey"]}],"agendaDiscussion":["1,Baseball (BS),Complete,Finding facilities during winter is tough... Can Royce find a spot? Scarborough? \u2192 whitby/oshawa? ,1,Baseball,Need a curriculum","2,Basketball (BK),Progress Report ,TBD convo with Clem & CCYAA (what's their new name?) ,2,Baseball,Location/Diamon booking might be complicated,Pending to check with city of toronto on possibility to book in advance more than 14 days?","3,Hockey (HK),Progress Report ,Coffee Pick Up shift has to MAN THE COFFEE TABLE (Interact w/ parents and funnel into whatsapp group etc) ,3,Baseball,Coach Confirmed : Royce","4,Golf (GF) ,Progress Report ,KCSF Golf Tourney - questions on KCSF participation etc - see below,4,Baseball,Start planning ! ,Including sorting out insurance","5,Soccer (SO),Progress Report ,Tabled,5,Basketball,Annual Retrospective,No more work to do beyond retro","6,Communications (CO),Progress Report ,WhatsApp Channel Use? ,6,Hockey,Booking Ice in progress (TBC)","7,Social Media (SM),Progress Report ,Poster Done,7,Hockey,Might add 1 hour of adult pick-up","8,Governance (GO),Progress Report ,Need to do more! ,8,Hockey,Pending confirmation of new coaches \u2192 curriculum","9,New Biz,Progress Report ,New Membership, End of Year activity,9,Golf,Start group chat"],"oldBusiness":["10,Golf,Start planning kids' clinic (1.5 hors)","1,Social Media,Create annual calendar,Define calendar events & posting schedule with framework/outline content,12,Communications,Check in with Miriam","2,Communications,Draft monthly newsletter,Monthly newsletter for parents & members (star of the week, program highlight...etc),13,Communications,Review operation of email marketing tool","3,Communications,Posters/Posts - Upcoming ,Create posts/posters/materials for upcoming programs (summer/fall),14,Governance,Create MDM for Customer DB","4,Communications,Parent Testimonal Video,Record/Edit parent testimonial video for use in website/posts/etc...,15,New Biz,PocketClass meeting set for Jun 18 - 18:30 (TBC)","5,Partnerships,Define framework for partnerships,Social Media, Legal & mechanics of partnering with other orgs"],"actionItems":[{"action":"Check w/ Scarborough Facility for date in Jan/Feb","category":"Baseball (BS)","assignedTo":"Henna C","dueDate":"12/4","notes":"Date for single day camp - Intermediate/Advanced (Options/Quote)","done":false},{"action":"Make Plaque & Plan for Recognition Session","category":"Hockey (HK)","assignedTo":"Ernie J","dueDate":"12/4","notes":"Make Plaques, Lets do Family Skate (recognizing Peter Yoo, John Cho, Tim Kim)","done":false},{"action":"WhatsApp Channel Promo QR","category":"Hockey (HK)","assignedTo":"Caitlin K","dueDate":"11/5","notes":"Set Up Sign and Check Users vs. Registrants (w/ Ernie)","done":false},{"action":"Season's Greetings Email","category":"Comms (CO)","assignedTo":"Miriam P","dueDate":"12/4","notes":"Draft Season's Greetings comms for community","done":false},{"action":"Metrics Review & Dist. List Clean","category":"Comms (CO)","assignedTo":"Miriam P","dueDate":"11/7","notes":"Review comms metrics and clean up distribution list w/ Ernie","done":false},{"action":"Thank You Content - Next Newsletter","category":"Comms (CO)","assignedTo":"Miriam P","dueDate":"12/4","notes":"Draft Thank You content to add to newsletter for existing sponsors and partners","done":false},{"action":"Kick Off Session - New Workstream","category":"Social Media (SM)","assignedTo":"Henna C","dueDate":"11/10","notes":"Set for Monday Nov 10 @ 9PM w/ Joel, Josh and Miriam - discuss social media objectives, intention, direction, and broad strokes calendar","done":false},{"action":"Share Existing Sponsors List","category":"Comms (CO)","assignedTo":"Danny K","dueDate":"11/8","notes":"Share in the group chat - who the sponsors/partners are and what they are donating - to thank","done":false},{"action":"Create Partnership/Sponsor Playbook","category":"Partnership (PT)","assignedTo":"Ernie J","dueDate":"11/7","notes":"Review existing process & clean up documentation on partership playbook","done":false},{"action":"Bring Joey Kim","category":"New Biz","assignedTo":"Danny K","dueDate":"12/4","notes":"Bring Joey to next meeting/initiation","done":false},{"action":"Plan end-of-year party / board meeting","category":"New Biz","assignedTo":"Joel C","dueDate":"12/4","notes":"w/ Miriam - define date & organize white elephant etc (Thu, Fri, or Sat)","done":false},{"action":"Prepare Year in Review Material","category":"Gov (GO)","assignedTo":"Ernie J","dueDate":"11/17","notes":"Target/Objectives review, Red/Yellow/Green & Prep for Next Year","done":false}],"nextMeeting":{"date":"2025-12-04","location":"TBD","objectives":"End of Year"},"nextDiscussion":["1,Baseball (BS),Winter Facility Search & Planning,Scarborough Facility - open slots? TBC but sounds like feasible - Jan / Feb (Intermediate/Advanced),\u2190 Fill here with discussion items as the meeting progresses","2,Baseball (BS),Winter Facility Search & Planning,Options for calendar & quotes","3,Hockey (HK),Plaques & recongition,Peter Yoo - plaque and session?","4,Hockey (HK),Coffee Pick Up Operation,Coffee Pick Up date for michelle? - she cant make it to the 23rd","5,Communications (CO),New End of Year Comms to send ,Holiday Card / Season Greetings / End of Year Communication","6,Communications (CO),Clean Up Distro List,Metrics review - lets do? & cleanup dataset of users","7,Communications (CO),Draft Thank You content (Sponsors),Thank you to sponsors content into next newsletter!","8,Communications (CO),Draft Thank You content (Sponsors),(Hockey Lion, Tim Horton's Peter Yoo, etc)","9,Social Media (SM),More people and merge with social media? - set separate discussion with comms & social media","10,Social Media (SM),Danny - share what the sponsors are etc","11,New Biz,New member : Joey Kim!","```"],"updatedAt":"2026-09-13T00:00:00.000Z","source":"sheet-import"},{"date":"2025-12-04","quorum":"Y","status":"final","attendance":[{"name":"Danny K","present":true,"roles":["Hockey","Partnerships"]},{"name":"Randy K","present":true,"roles":["Basketball","Website"]},{"name":"Danny H","present":false,"roles":["Baseketball"]},{"name":"Josh K","present":false,"roles":["Hockey","Social Media"]},{"name":"Michelle C","present":false,"roles":["Communications"]},{"name":"Henna C","present":true,"roles":["Social Media","Baseball"]},{"name":"Caitlin K","present":true,"roles":["Hockey","Golf","Soccer"]},{"name":"Joel C","present":true,"roles":["Social Media","Baseball","Golf"]},{"name":"Miriam P","present":true,"roles":["Communications","Hockey","Partnerships"]},{"name":"Ernie J","present":true,"roles":["Governance","Finance","Hockey"]}],"agendaDiscussion":["1,Baseball (BS),Facility,Scarborough Facility Status - Jan/Feb (Intermediate/Advanced Camp),1,Baseball,Need a curriculum","2,Basketball (BK),Update,TBD convo with Clem & CCYAA (what's their new name?) ,2,Baseball,Location/Diamon booking might be complicated,Pending to check with city of toronto on possibility to book in advance more than 14 days?","3,Hockey (HK),Pending Items,Plaque & Prep for Dec 21 (Family Skate and Thank You) , Jersey/Hoodies? ,3,Baseball,Coach Confirmed : Royce","4,Golf (GF) ,Progress Report ,We need to start! ,4,Baseball,Start planning ! ,Including sorting out insurance","5,Soccer (SO),Progress Report ,Tabled,5,Basketball,Annual Retrospective,No more work to do beyond retro","6,Communications (CO),Season Greetings, Distro List, Thank you,End of year communication to community, progress on clean up & thank you for sponsor,6,Hockey,Booking Ice in progress (TBC)","7,Social Media (SM),Progress Report ,New Workstream - Cadence / Deliverables? ,7,Hockey,Might add 1 hour of adult pick-up","8,Governance (GO),Progress Report ,Retrospective & Plan for next year - template share by next week - Discussion in Jan,8,Hockey,Pending confirmation of new coaches \u2192 curriculum","9,New Biz,Progress Report ,New Membership - Joey ! ,9,Golf,Start group chat"],"oldBusiness":["10,Golf,Start planning kids' clinic (1.5 hors)","1,Social Media,Create annual calendar,Define calendar events & posting schedule with framework/outline content,12,Communications,Check in with Miriam","2,Communications,Draft monthly newsletter,Monthly newsletter for parents & members (star of the week, program highlight...etc),13,Communications,Review operation of email marketing tool","3,Communications,Posters/Posts - Upcoming ,Create posts/posters/materials for upcoming programs (summer/fall),14,Governance,Create MDM for Customer DB","4,Communications,Parent Testimonal Video,Record/Edit parent testimonial video for use in website/posts/etc...,15,New Biz,PocketClass meeting set for Jun 18 - 18:30 (TBC)","5,Partnerships,Define framework for partnerships,Social Media, Legal & mechanics of partnering with other orgs"],"actionItems":[{"action":"Check w/ Scarborough Facility for date in Jan/Feb","category":"Baseball (BS)","assignedTo":"Henna C","dueDate":"12/4","notes":"Not going forward, suggestion for young adults interested in hitting lessons","done":false},{"action":"Make Plaque & Plan for Recognition Session","category":"Hockey (HK)","assignedTo":"Ernie J","dueDate":"12/4","notes":"volunteers get a amazon gift card for attending 7/9 sessions. jan 25th 2015 team skate w/ korean coach","done":false},{"action":"Basketball","category":"Randy","assignedTo":"11/5","dueDate":"numbers aren't bad","notes":"get tkt to tag us on social and take footage","done":false},{"action":"Baseball (BS)","category":"Joel C","assignedTo":"12/4","dueDate":"Going to gage interest for young adult baseball program","notes":"","done":false},{"action":"Golf","category":"Do a short 9 and dine sort of event","assignedTo":"causal and networking","dueDate":"","notes":"","done":false}],"nextMeeting":{"date":"2026-01-03","location":"Danny's","objectives":"End of Year"},"nextDiscussion":["1,Baseball (BS),Winter Facility Search & Planning,Scarborough Facility - open slots? TBC but sounds like feasible - Jan / Feb (Intermediate/Advanced),\u2190 Fill here with discussion items as the meeting progresses","2,Baseball (BS),Winter Facility Search & Planning,Options for calendar & quotes","3,Hockey (HK),Plaques & recongition,Peter Yoo - plaque and session?","4,Hockey (HK),Coffee Pick Up Operation,Coffee Pick Up date for michelle? - she cant make it to the 23rd","5,Communications (CO),New End of Year Comms to send ,Holiday Card / Season Greetings / End of Year Communication","6,Communications (CO),Clean Up Distro List,Metrics review - lets do? & cleanup dataset of users","7,Communications (CO),Draft Thank You content (Sponsors),Thank you to sponsors content into next newsletter!","8,Communications (CO),Draft Thank You content (Sponsors),(Hockey Lion, Tim Horton's Peter Yoo, etc)","9,Social Media (SM),More people and merge with social media? - set separate discussion with comms & social media","10,Social Media (SM),Danny - share what the sponsors are etc","11,New Biz,New member : Joey Kim!","```","# 2026"],"updatedAt":"2026-09-13T00:00:00.000Z","source":"sheet-import"},{"date":"2026-02-11","quorum":"Y","status":"final","attendance":[{"name":"Danny K","present":true,"roles":["Hockey","Partnerships"]},{"name":"Randy K","present":false,"roles":["Basketball","Website"]},{"name":"Danny H","present":true,"roles":["Finance","Baseketball"]},{"name":"Josh K","present":false,"roles":["Baseball","Hockey","Social Media"]},{"name":"Michelle C","present":true,"roles":["Golf","Communications"]},{"name":"Henna C","present":true,"roles":["Social Media","Baseball"]},{"name":"Caitlin K","present":true,"roles":["Hockey","Golf","Soccer"]},{"name":"Joel C","present":true,"roles":["Social Media","Baseball","Golf"]},{"name":"Miriam P","present":true,"roles":["Communications","Hockey","Partnerships"]},{"name":"Ernie J","present":true,"roles":["Governance","Finance","Hockey"]}],"agendaDiscussion":["1,Baseball (BS),Young Adult Program (Pivot),Joel - Interest Gauge/Check? ,1,Baseball,Need a curriculum","2,Basketball (BK),KTK Socials / Video - Tag,Did we request? Are checking? Is it working? ,2,Baseball,Location/Diamon booking might be complicated,Pending to check with city of toronto on possibility to book in advance more than 14 days?","3,Hockey (HK),Volunteer Progress,Gift Card? How's attendance? ,3,Baseball,Coach Confirmed : Royce","3,Hockey (HK),Junior Tigers,Event coming up in Etobicoke? , Korean Comms Channel  - korean coach?","4,Golf (GF) ,Progress Report ,Nine & Dine - Draft in Progress! ,4,Baseball,Start planning ! ,Including sorting out insurance","5,Soccer (SO),Potential Collaboration (?),Danny K - who is it? ,5,Basketball,Annual Retrospective,No more work to do beyond retro","6,Communications (CO),Seasonal Update,Winter Season Prep? Spring Season Prep? / Responding to Emails - Miriam,6,Hockey,Booking Ice in progress (TBC)","7,Social Media (SM),Progress Report ,New Workstream - Cadence / Deliverables? ,7,Hockey,Might add 1 hour of adult pick-up","8,Governance (GO),Progress Report ,Annual Performance Review of Programs? - i should really get to it... ,8,Hockey,Pending confirmation of new coaches \u2192 curriculum","9,New Biz,Progress Report ,9,Golf,Start group chat"],"oldBusiness":["10,Golf,Start planning kids' clinic (1.5 hors)","1,Social Media,Create annual calendar,Define calendar events & posting schedule with framework/outline content,12,Communications,Check in with Miriam","2,Communications,Draft monthly newsletter,Monthly newsletter for parents & members (star of the week, program highlight...etc),13,Communications,Review operation of email marketing tool","3,Communications,Posters/Posts - Upcoming ,Create posts/posters/materials for upcoming programs (summer/fall),14,Governance,Create MDM for Customer DB","4,Communications,Parent Testimonal Video,Record/Edit parent testimonial video for use in website/posts/etc...,15,New Biz,PocketClass meeting set for Jun 18 - 18:30 (TBC)","5,Partnerships,Define framework for partnerships,Social Media, Legal & mechanics of partnering with other orgs"],"actionItems":[{"action":"Confirm Availiabity - Royce & Facility","category":"Baseball (BS)","assignedTo":"Henna C","dueDate":"2/28","notes":"","done":false},{"action":"Ask TKT for finance info (spreadhsheets)","category":"Basketball (BK)","assignedTo":"Randy K","dueDate":"2/15","notes":"","done":false},{"action":"Draft Volunteer Retention Program","category":"Hockey (HK)","assignedTo":"Ernie J","dueDate":"2/28","notes":"Brainstorm & draft idea, sanity check with existing volunteers?","done":false},{"action":"Start WBS & Project Plan - Fairway Social","category":"Golf (GF)","assignedTo":"Michelle C","dueDate":"2/28","notes":"Let's start putting together the project plan!","done":false},{"action":"E-mail clean-up","category":"Comm (CO)","assignedTo":"Miriam P","dueDate":"2/15","notes":"Respond to any pending emails, set up cadence for check/response","done":false},{"action":"Review short form clips","category":"Social (SM)","assignedTo":"Henna C","dueDate":"2/28","notes":"Review new SM member work and guide ~","done":false},{"action":"Family Skate - Coffee Pickup (Additional)","category":"HOckey (HK)","assignedTo":"Joel C","dueDate":"2/15","notes":"2 more coffee + 1 hot chocolate for coffee pickup for family skate & new location tbd","done":false}],"nextMeeting":{"date":"2026-03-13","location":"Zoom","objectives":""},"nextDiscussion":["1,Baseball (BS),Young Adult Program (Pivot),Draft (Royce & Facility)? - 10 young adults (flexible scheduling? close to Mar ~ Apr) - Henna to confirm availability for Jun - Jul? ,\u2190 Fill here with discussion items as the meeting progresses","2,Basketball (BK),Randy - ask TKT and reminder for the sheets (finance)","3,Hockey (HK),Volunteer Attendance issue,Monitor - is it improving? incentives?","4,Hockey (HK),Junior Tigers","5,Golf (GF) ,KCAA Fairway Social,Sponsors / Partners - smaller korean community biz? - aiming for may?","6,Soccer (SO),Exploration - Join/Pickup the collab,Thornhill / Northyork ~ Jihe! maybe (1/week on wed for training and play in a league) - how many teams?","7,Communications (CO),Info email - miriam to do~","8,Social Media (SM),New Social Media member,Caitlin's bro! He's a student but brings lots of experience!!","9,Governance (GO)","10,New Biz,Family Skate,2 more coffee + 1 hot chocolate for coffee pickup for family skate & new location tbd","```"],"updatedAt":"2026-09-13T00:00:00.000Z","source":"sheet-import"},{"date":"2026-03-04","quorum":"Y","status":"final","attendance":[{"name":"Danny K","present":true,"roles":["Hockey","Partnerships"]},{"name":"Randy K","present":true,"roles":["Basketball","Website"]},{"name":"Danny H","present":true,"roles":["Finance","Baseketball"]},{"name":"Josh K","present":true,"roles":["Baseball","Hockey","Social Media"]},{"name":"Michelle C","present":true,"roles":["Golf","Communications"]},{"name":"Henna C","present":true,"roles":["Social Media","Baseball"]},{"name":"Caitlin K","present":true,"roles":["Hockey","Golf","Soccer"]},{"name":"Joel C","present":true,"roles":["Social Media","Baseball","Golf"]},{"name":"Miriam P","present":true,"roles":["Communications","Hockey","Partnerships"]},{"name":"Ernie J","present":true,"roles":["Governance","Finance","Hockey"]}],"agendaDiscussion":["1,Baseball (BS),Young Adult Program (Pivot),TBD on Henna's calendar/schedule,1,Baseball,Need a curriculum","2,Basketball (BK),Finance Info,Need spreadsheets - plz request to TKT,2,Baseball,Location/Diamon booking might be complicated,Pending to check with city of toronto on possibility to book in advance more than 14 days?","3,Hockey (HK),Volunteer Progress,Plan for Next Season,3,Baseball,Coach Confirmed : Royce","3,Hockey (HK),Junior Tigers,Spring Tourneys (Asian, 3v3 Spring/Summer, May Tourney!, Jersey Support, March Camp w/ Daniel Erlich)","4,Golf (GF) ,Progress Report ,Draft - 9 Holes & Activities,4,Baseball,Start planning ! ,Including sorting out insurance","5,Soccer (SO),Potential Collaboration (?),Danny to follow-up . - might be resource constrained,5,Basketball,Annual Retrospective,No more work to do beyond retro","6,Communications (CO),Seasonal Update,How's the inbox looking? ,6,Hockey,Booking Ice in progress (TBC)","7,Social Media (SM),Progress Report ,New Social Media Member - updates coming soon! editing,7,Hockey,Might add 1 hour of adult pick-up","8,Governance (GO),Progress Report ,New Finance Model Complete - Need to Populate w/ 2025 & 2026 for validation,8,Hockey,Pending confirmation of new coaches \u2192 curriculum","9,New Biz,Progress Report ,Membership & Onboarding - Policy/Process,9,Golf,Start group chat"],"oldBusiness":["10,Golf,Start planning kids' clinic (1.5 hors)","1,Social Media,Create annual calendar,Define calendar events & posting schedule with framework/outline content,12,Communications,Check in with Miriam","2,Communications,Draft monthly newsletter,Monthly newsletter for parents & members (star of the week, program highlight...etc),13,Communications,Review operation of email marketing tool","3,Communications,Posters/Posts - Upcoming ,Create posts/posters/materials for upcoming programs (summer/fall),14,Governance,Create MDM for Customer DB","4,Communications,Parent Testimonal Video,Record/Edit parent testimonial video for use in website/posts/etc...,15,New Biz,PocketClass meeting set for Jun 18 - 18:30 (TBC)","5,Partnerships,Define framework for partnerships,Social Media, Legal & mechanics of partnering with other orgs"],"actionItems":[{"action":"Hockey Planning - Outline","category":"Hockey","assignedTo":"Caitlin K","dueDate":"3/28","notes":"Move it to Saturdays - Learn 2 Skate & Hockey","done":false},{"action":"Current Hockey / Learn 2 Skate","category":"Hockey","assignedTo":"Ernie & Caitlin","dueDate":"3/7","notes":"Remaining 2 sessions - buy the coffee & timbits plz","done":false},{"action":"Plan Retreat - PreWork","category":"Common","assignedTo":"Ernie & Joey","dueDate":"3/28","notes":"Retreat Jun ~ Jul \u2192 penciling in? - keep it in the city!!","done":false},{"action":"Review & Re-Draft Golf : Fairway Social","category":"Golf","assignedTo":"Michelle C","dueDate":"3/28","notes":"Expense, Location & Costs","done":false},{"action":"Soccer Follow-Up","category":"Soccer","assignedTo":"Danny K","dueDate":"3/28","notes":"Follow-up with the soccer guys - are they doing? how much help do they need (if yes)","done":false},{"action":"Social Media - new member & work?","category":"Social Media","assignedTo":"Henna C","dueDate":"3/28","notes":"Review footage/clips & define next actions/timetable/schedule posts","done":false},{"action":"Review Finance Model","category":"Governance","assignedTo":"Ernie & Danny H","dueDate":"3/28","notes":"Review & Refine Finance Model","done":false},{"action":"Fill In - Learn 2 Skate & Hockey Program Finance","category":"Governance","assignedTo":"Ernie","dueDate":"3/28","notes":"Backfill transactions for PoC Finance Model","done":false},{"action":"Request Finance Spreadsheets from TKT","category":"Basketball","assignedTo":"Randy","dueDate":"3/28","notes":"","done":false}],"nextMeeting":{"date":"2026-04-03","location":"Zoom","objectives":""},"nextDiscussion":["1,Baseball (BS),Young Adult Program (Pivot),TBD on Henna's calendar/schedule,\u2190 Fill here with discussion items as the meeting progresses","2,Basketball (BK),Finance Info,Need spreadsheets - plz request to TKT","3,Hockey (HK),Volunteer Progress,Plan for Next Season - Volunteer Retention & Recruitment","4,Hockey (HK),Junior Tigers,Spring Tourneys (Asian, 3v3 Spring/Summer, May Tourney!, Jersey Support, March Camp w/ Daniel Erlich)","5,Golf (GF) ,Progress Report ,Revisit expense & location","```"],"updatedAt":"2026-09-13T00:00:00.000Z","source":"sheet-import"},{"date":"2026-04-01","quorum":"Y","status":"final","attendance":[{"name":"Danny K","present":true,"roles":["Hockey","Partnerships"]},{"name":"Randy K","present":true,"roles":["Basketball","Website"]},{"name":"Danny H","present":true,"roles":["Finance","Baseketball"]},{"name":"Josh K","present":false,"roles":["Baseball","Hockey","Social Media"]},{"name":"Michelle C","present":true,"roles":["Golf","Communications"]},{"name":"Henna C","present":true,"roles":["Social Media","Baseball"]},{"name":"Caitlin K","present":true,"roles":["Hockey","Golf","Soccer"]},{"name":"Joel C","present":true,"roles":["Social Media","Baseball","Golf"]},{"name":"Miriam P","present":true,"roles":["Communications","Hockey","Partnerships"]},{"name":"Ernie J","present":true,"roles":["Governance","Finance","Hockey"]}],"agendaDiscussion":["1,Baseball (BS),Young Adult Program (Pivot),Scheduling? ,1,Baseball,Need a curriculum","2,Hockey (HK),Volunteer Progress,Plan for Next Season,2,Baseball,Location/Diamon booking might be complicated,Pending to check with city of toronto on possibility to book in advance more than 14 days?","3,Hockey (HK),Junior Tigers,Spring Tourneys (Asian, 3v3 Spring/Summer, May Tourney!, Jersey Support, March Camp w/ Daniel Erlich),3,Baseball,Coach Confirmed : Royce","3,Golf (GF) ,Progress Report ,Markham Exec Golf Club - 18 holes - need to finalize activity & mechanics + promo","4,Soccer (SO),Potential Collaboration (?),Season is ON! can we help ? ,4,Baseball,Start planning ! ,Including sorting out insurance","5,Communications (CO),Seasonal Update,Miriam's doing a great job! thank you!!,5,Basketball,Annual Retrospective,No more work to do beyond retro","6,Social Media (SM),Progress Report ,Updates / New Content Pending ,6,Hockey,Booking Ice in progress (TBC)","7,Governance (GO),Progress Report ,Need to populate with transactions/records - tabled for June,7,Hockey,Might add 1 hour of adult pick-up","8,New biz,Retreat,July in the city (june problematic due to World Cup) ,8,Hockey,Pending confirmation of new coaches \u2192 curriculum","9,Basketball (BK),New Season ! ,TKT is BACK ! (Starts Apr 10th - 10 sessions) ,9,Golf,Start group chat"],"oldBusiness":["10,Golf,Start planning kids' clinic (1.5 hors)","1,Social Media,Create annual calendar,Define calendar events & posting schedule with framework/outline content,12,Communications,Check in with Miriam","2,Communications,Draft monthly newsletter,Monthly newsletter for parents & members (star of the week, program highlight...etc),13,Communications,Review operation of email marketing tool","3,Communications,Posters/Posts - Upcoming ,Create posts/posters/materials for upcoming programs (summer/fall),14,Governance,Create MDM for Customer DB","4,Communications,Parent Testimonal Video,Record/Edit parent testimonial video for use in website/posts/etc...,15,New Biz,PocketClass meeting set for Jun 18 - 18:30 (TBC)","5,Partnerships,Define framework for partnerships,Social Media, Legal & mechanics of partnering with other orgs"],"actionItems":[{"action":"Finalize Event Page Details","category":"Golf (GF)","assignedTo":"Michelle C","dueDate":"4/5","notes":"Define main event mechanics, pricing, etc","done":false},{"action":"Set up & publish Event Page","category":"Golf (GF)","assignedTo":"Randy K","dueDate":"4/6","notes":"Publish w/ collection via stripe - incl. early bird special ?","done":false},{"action":"Come Cheer on the Junior Tigers!","category":"Hockey (HK)","assignedTo":"Common","dueDate":"4/6","notes":"At Richmond Hill (Danny K to share details) - come cheer on our Junior Tigers!!","done":false},{"action":"Come Cheer on the Junior Tigers! - part 2","category":"Hockey (HK)","assignedTo":"Common","dueDate":"5/15","notes":"May 15 ~ 17 at York University ! Come hang out !","done":false},{"action":"Post Communications for Soccer Season","category":"Soccer (SO)","assignedTo":"Miriam P","dueDate":"4/10","notes":"Danny to share content/details to post on IG","done":false},{"action":"Request Finance Data & Sheets","category":"Basketball (BK)","assignedTo":"Randy K","dueDate":"4/10","notes":"Request finance data & sheets to TKT so we can cross reference with the bank statements","done":false},{"action":"Explore other options for disbursing funds (EMT?)","category":"Finance (FI)","assignedTo":"Danny H","dueDate":"4/30","notes":"Explore other avenues of disbursing - emt w/ bank?","done":false},{"action":"Hand-over summary & sheet","category":"Golf (GF)","assignedTo":"Ernie J","dueDate":"4/6","notes":"To michelle for costing/summary etc","done":false}],"nextMeeting":{"date":"2026-05-01","location":"Zoom","objectives":""},"nextDiscussion":["1,Hockey (HK),End of Season,Medals, Group Photo etc... ,\u2190 Fill here with discussion items as the meeting progresses","2,Hockey (HK),Chat w/ Peter about donation during summer","3,Hockey (HK),Volunteer Target ? ,Winter Break, March Break ~ need a different set of volunteers to cover for these pockets","4,Hockey (HK),Junior Tigers Spring/Summer Tourneys,May 15 ~ 17 @ York Univ (Asian Hockey Tournament) // MON Apr 6 @ Richmond Hill - 9AM ~ 3PM //  - send schedule to group","5,Golf (GF) ,Save the Date - Communication,Poster / Event Page / Sign Up / Enrollment","6,Golf (GF) ,Early Bird Registration,Set up for Apr 15?","7,Soccer (SO),Potential Collaboration (?),Season is ON! can we help ?  - comms and recruitment?","8,Basketball (BK),Finance Excel Sheet,Still need to collect - Randy to send to Danny H - access PDF & Sheets","9,Finance ,EMT ? Can we do ?,Danny H to check!","```"],"updatedAt":"2026-09-13T00:00:00.000Z","source":"sheet-import"},{"date":"2026-05-06","quorum":"Y","status":"final","attendance":[{"name":"Danny K","present":true,"roles":["Hockey","Partnerships"]},{"name":"Randy K","present":true,"roles":["Basketball","Website"]},{"name":"Danny H","present":true,"roles":["Finance","Baseketball"]},{"name":"Josh K","present":false,"roles":["Baseball","Hockey","Social Media"]},{"name":"Michelle C","present":true,"roles":["Golf","Communications"]},{"name":"Henna C","present":true,"roles":["Social Media","Baseball"]},{"name":"Caitlin K","present":true,"roles":["Hockey","Golf","Soccer"]},{"name":"Joel C","present":true,"roles":["Social Media","Baseball","Golf"]},{"name":"Miriam P","present":true,"roles":["Communications","Hockey","Partnerships"]},{"name":"Ernie J","present":true,"roles":["Governance","Finance","Hockey"]}],"agendaDiscussion":["1,Golf (GF) ,Finalize Details,Sponser food pick up, finalize acitivation holes, continue promo","2,Golf (GF) ,Registration,Registration now open, keep track of sign ups and potential need for making groups","3,Baseball (BS),Young Adult Program (Pivot),Scheduling? ,1,Baseball,Need a curriculum","4,New biz,Article on KCAA?!","5,Hockey (HK),Volunteer Progress + programming + ice,Plan for Next Season,2,Baseball,Location/Diamon booking might be complicated,Pending to check with city of toronto on possibility to book in advance more than 14 days?","6,Hockey (HK),Junior Tigers,Spring Tourneys (Asian, 3v3 Spring/Summer, May Tourney!, Jersey Support, March Camp w/ Daniel Erlich),3,Baseball,Coach Confirmed : Royce","7,Soccer (SO),Potential Collaboration (?),Season is ON! can we help ? ,4,Baseball,Start planning ! ,Including sorting out insurance","8,Communications (CO),Seasonal Update,Miriam's doing a great job! thank you!!,5,Basketball,Annual Retrospective,No more work to do beyond retro","9,Governance (GO),Progress Report ,Need to populate with transactions/records - tabled for June,7,Hockey,Might add 1 hour of adult pick-up","10,New biz,Retreat,July in the city (june problematic due to World Cup) ,8,Hockey,Pending confirmation of new coaches \u2192 curriculum","11,Basketball (BK),New Season ! ,TKT is BACK ! (Starts Apr 10th - 10 sessions) ,9,Golf,Start group chat"],"oldBusiness":["10,Golf,Start planning kids' clinic (1.5 hors)","1,Social Media,Create annual calendar,Define calendar events & posting schedule with framework/outline content,12,Communications,Check in with Miriam","2,Communications,Draft monthly newsletter,Monthly newsletter for parents & members (star of the week, program highlight...etc),13,Communications,Review operation of email marketing tool","3,Communications,Posters/Posts - Upcoming ,Create posts/posters/materials for upcoming programs (summer/fall),14,Governance,Create MDM for Customer DB","4,Communications,Parent Testimonal Video,Record/Edit parent testimonial video for use in website/posts/etc...,15,New Biz,PocketClass meeting set for Jun 18 - 18:30 (TBC)","5,Partnerships,Define framework for partnerships,Social Media, Legal & mechanics of partnering with other orgs"],"actionItems":[{"action":"Boost Social Media Presence","category":"Golf","assignedTo":"Caitlin/All","dueDate":"ASAP","notes":"Stories/posts to boost registration + reach out to other demographics (chat w/ Michelle)","done":false},{"action":"Think about potential date","category":"Baseball","assignedTo":"Joel/Josh","dueDate":"On Hold","notes":"1 or 2 day 'camp' --> Sept/Oct maybe","done":false},{"action":"Message Royce","category":"Baseball","assignedTo":"Joel","dueDate":"By next meeting","notes":"See if baseball can be done for YA","done":false},{"action":"Register for EMT","category":"Governance","assignedTo":"Danny H","dueDate":"ASAP","notes":"","done":false},{"action":"Retreat Logistics","category":"New Biz","assignedTo":"Miriam(?)","dueDate":"ASAP","notes":"plan it out and think through logistics","done":false},{"action":"Look into TKT numbers","category":"Basketball","assignedTo":"Randy","dueDate":"By next meeting","notes":"Make sure numbers add up and no red flags","done":false}],"nextMeeting":{"date":"2026-06-05","location":"Zoom","objectives":""},"nextDiscussion":["1,Hockey,Ice logistics,Saturday, 3 hours, back-to-back, can have older kids come early to help,\u2190 Fill here with discussion items as the meeting progresses","2,Hockey,House league w/ markham,Looking to partner with Markham team to create a small house league","3,Baseball,Baseball 'camp' for YA,Not sure about reach for youth, maybe better for YA","4,Socials,AI?,Do we want to get a KCAA ChatGPT account?","5,New Biz,Retreat,Danny K's place?","```"],"updatedAt":"2026-09-13T00:00:00.000Z","source":"sheet-import"},{"date":"2026-09-02","quorum":"Y","status":"final","attendance":[{"name":"Danny K","present":true,"roles":["Hockey","Partnerships"]},{"name":"Randy K","present":true,"roles":["Basketball","Website"]},{"name":"Danny H","present":true,"roles":["Finance","Baseketball"]},{"name":"Josh K","present":false,"roles":["Baseball","Hockey","Social Media"]},{"name":"Michelle C","present":false,"roles":["Golf","Communications"]},{"name":"Caitlin K","present":false,"roles":["Hockey","Golf","Soccer"]},{"name":"Joel C","present":true,"roles":["Social Media","Baseball","Golf"]},{"name":"Miriam P","present":true,"roles":["Communications","Hockey","Partnerships"]},{"name":"Ernie J","present":true,"roles":["Governance","Finance","Hockey"]}],"agendaDiscussion":["1,Golf (GF) ,Pending Items & Next Steps,Done","2,Baseball (BS),New Program Scoping,On Hold","3,Baseball (BS),1 ~ 2 day Camp,Coach Yoon - Simple Format (Weekly/Beginners) but TBD on scheduling? - time gate setting this week,1,Baseball,Need a curriculum","4,Hockey (HK),Learn2Skate / Hockey,9 L / 5 H - but need to ramp up roster (lets aim for weekly?) - 20","5,Hockey (HK),Plan & Prep,Volunteer Search - Start this week (Ernie / Caitlin) ,2,Baseball,Location/Diamon booking might be complicated,Pending to check with city of toronto on possibility to book in advance more than 14 days?","6,Hockey (HK),Men's League,Saved by the bell! - still operating! ,3,Baseball,Coach Confirmed : Royce","7,Social Media (SM),Vacancy,hmmm we should recruit and / or fill?  - maybe get some coops/interns - university kids? - recruitment/volunteer for univs,4,Baseball,Start planning ! ,Including sorting out insurance","8,Communications (CO),Seasonal Update & Social Media PIC? ,5,Basketball,Annual Retrospective,No more work to do beyond retro","9,Governance (GO),Progress Report ,AI Prototype / Agent Set-up / Server Setup ,7,Hockey,Might add 1 hour of adult pick-up","10,New biz,Retreat,Winter Event? - ski trip ? invite soojin!! & henna? ,8,Hockey,Pending confirmation of new coaches \u2192 curriculum","11,Basketball (BK),New Season ! ,Registration started! - they are doing their own google form intake etc,9,Golf,Start group chat"],"oldBusiness":["10,Golf,Start planning kids' clinic (1.5 hors)","1,Social Media,Create annual calendar,Define calendar events & posting schedule with framework/outline content,12,Communications,Check in with Miriam","2,Communications,Draft monthly newsletter,Monthly newsletter for parents & members (star of the week, program highlight...etc),13,Communications,Review operation of email marketing tool","3,Communications,Posters/Posts - Upcoming ,Create posts/posters/materials for upcoming programs (summer/fall),14,Governance,Create MDM for Customer DB","4,Communications,Parent Testimonal Video,Record/Edit parent testimonial video for use in website/posts/etc...,15,New Biz,PocketClass meeting set for Jun 18 - 18:30 (TBC)","5,Partnerships,Define framework for partnerships,Social Media, Legal & mechanics of partnering with other orgs"],"actionItems":[{"action":"Create Documentation for Recruitment (Volunteers)","category":"GO","assignedTo":"Ernie","dueDate":"September 6","notes":"Job Description, R&R and Scope of Work for Volunteers by section","done":false},{"action":"Create Documentation for Recruitment (Volunteers)","category":"GO","assignedTo":"Ernie","dueDate":"September 6","notes":"Intro deck for who we are, etc - why you may want to come do this shit with us!","done":false},{"action":"Follow-up and put in our name for the draw","category":"HK","assignedTo":"Caitlin","dueDate":"?","notes":"Marlies or Maple Leaf Games - Draw next week?","done":false},{"action":"Discussion & Brainstorming","category":"Others","assignedTo":"All","dueDate":"October 7","notes":"2027 Pickleball Social?!","done":false},{"action":"Discussion & Brainstorming","category":"Others","assignedTo":"All","dueDate":"October 7","notes":"Vollyball (and/or) other sports?","done":false},{"action":"Define Due-Date for Decision on Weekly Camp","category":"BS","assignedTo":"Joel","dueDate":"October 7","notes":"Define a deadline for go-no go decision with Coach Yoon","done":false},{"action":"Volunteer Search Execution (Start)","category":"GO","assignedTo":"Ernie","dueDate":"September 6","notes":"Define Plan & Execute (email & contact)","done":false},{"action":"Email Automation - Daily/Weekly Script","category":"GO","assignedTo":"Ernie","dueDate":"September 6","notes":"Use volunteer emailing as pilot for automation (email)","done":false},{"action":"Draft Automation Plan for Social Media","category":"SM","assignedTo":"Ernie","dueDate":"September 6","notes":"Draft plan on Automation for Social Media (existing service or scripting)","done":false},{"action":"Draft HTML based light-erp","category":"GO","assignedTo":"Ernie","dueDate":"September 6","notes":"Dratf plan / share with Danny H - how and what features, outline and skeleton for GCOA and other reqs","done":false}],"nextMeeting":{"date":"2026-10-02","location":"Zoom","objectives":""},"nextDiscussion":["1,\u2190 Fill here with discussion items as the meeting progresses","```","# z. List","```","Index,Month","1,Jan","2,Feb","3,Mar","4,Apr","5,May","6,Jun","7,Jul","8,Aug","9,Sep","10,Oct","11,Nov","12,Dec","```"],"updatedAt":"2026-09-13T00:00:00.000Z","source":"sheet-import"}]</script>
+
+<div class="page">
+  <a class="back-nav" href="index.html"><span class="arrow">&larr;</span> Back to Hub</a>
+
+  <p class="eyebrow">KCAA &middot; Board Governance</p>
+  <h1>Board Meeting Minutes</h1>
+  <p class="lede">Every board meeting, archived and searchable in one place &mdash; plus a live tool for taking minutes as the meeting runs. Changes save for everyone with this page open.</p>
+
+  <div class="sync-banner" id="syncBanner">&#9888; Live sync isn't available in this view, so changes on this page won't be saved. Reopen this page from its published link.</div>
+
+  <div class="tab-row">
+    <button class="tab-btn active" id="tabArchiveBtn">Archive</button>
+    <button class="tab-btn" id="tabEditorBtn">New / Edit Meeting</button>
+  </div>
+
+  <!-- ================= ARCHIVE VIEW ================= -->
+  <div class="view active" id="viewArchive">
+    <section class="block">
+      <h2>Meetings <span class="h2-note" id="meetingCountNote"></span></h2>
+      <div id="archiveList"></div>
+      <div class="empty-state" id="archiveEmpty" style="display:none;">No meetings yet &mdash; start one from the "New / Edit Meeting" tab.</div>
+    </section>
+
+    <section class="block">
+      <h2>Import historical minutes <span class="h2-note">one-time, from the old spreadsheet</span></h2>
+      <div class="edit-card">
+        <p style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;">Loads the 11 board meetings (Jun 2025 &ndash; Sep 2026) already parsed from the old Google Sheet into this archive. Safe to click more than once &mdash; meetings whose date is already in the archive are skipped, nothing is duplicated.</p>
+        <button class="btn primary" id="importLegacyBtn">Import historical minutes</button>
+        <span class="save-indicator" id="importStatus" style="margin-left:10px;"></span>
+      </div>
+    </section>
+  </div>
+
+  <!-- ================= EDITOR VIEW ================= -->
+  <div class="view" id="viewEditor">
+    <section class="block" id="editorPicker">
+      <h2>Start or resume a meeting</h2>
+      <div class="edit-card">
+        <p style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;">Start fresh for today's meeting, or resume editing one already in the archive (e.g. to finish typing up minutes after the meeting ends).</p>
+        <button class="btn primary" id="newMeetingBtn">+ Start new meeting</button>
+      </div>
+    </section>
+
+    <section class="block" id="editorForm" style="display:none;">
+      <div class="editor-toolbar">
+        <h2 style="border:none;padding:0;margin:0;flex:1;">Editing &mdash; <span id="editingDateLabel"></span></h2>
+        <span class="save-indicator" id="saveIndicator"></span>
+        <button class="btn small ghost" id="closeEditorBtn">Close</button>
+      </div>
+
+      <div class="edit-card" style="margin-bottom:16px;">
+        <div class="meta-grid">
+          <div class="form-field"><label for="f_date">Meeting date</label><input type="date" id="f_date"></div>
+          <div class="form-field"><label for="f_quorum">Quorum met?</label>
+            <select id="f_quorum"><option value="">&mdash;</option><option value="Y">Yes</option><option value="N">No</option></select>
+          </div>
+          <div class="form-field"><label for="f_status">Status</label>
+            <select id="f_status"><option value="draft">Draft (in progress)</option><option value="final">Final</option></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="edit-card" style="margin-bottom:16px;">
+        <div class="mb-h3">Attendance</div>
+        <div id="attendanceRows"></div>
+        <button class="add-row-btn" id="addAttendanceBtn">+ Add person</button>
+      </div>
+
+      <div class="edit-card" style="margin-bottom:16px;">
+        <div class="mb-h3">Agenda &amp; discussion</div>
+        <div id="agendaRows"></div>
+        <button class="add-row-btn" id="addAgendaBtn">+ Add agenda item</button>
+      </div>
+
+      <div class="edit-card" style="margin-bottom:16px;">
+        <div class="mb-h3">Old business (carried from previous meeting)</div>
+        <div id="oldBizRows"></div>
+        <button class="add-row-btn" id="addOldBizBtn">+ Add item</button>
+      </div>
+
+      <div class="edit-card" style="margin-bottom:16px;">
+        <div class="mb-h3">Action items</div>
+        <div id="actionRows"></div>
+        <button class="add-row-btn" id="addActionBtn">+ Add action item</button>
+      </div>
+
+      <div class="edit-card">
+        <div class="mb-h3">Next meeting</div>
+        <div class="meta-grid">
+          <div class="form-field"><label for="f_nm_date">Date</label><input type="date" id="f_nm_date"></div>
+          <div class="form-field"><label for="f_nm_location">Location</label><input type="text" id="f_nm_location"></div>
+          <div class="form-field full"><label for="f_nm_objectives">Objectives</label><input type="text" id="f_nm_objectives"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer>KCAA internal &middot; board meeting minutes v1.0 &middot; part of the <a href="index.html" style="color:var(--ink-faint)">KCAA Hub</a></footer>
+</div>
+
+<!--
+  ============================================================================
+  FIREBASE SETUP — same project as the outreach tracker (kcaa-hub). This page
+  adds a new "meeting_minutes" collection to that project. In Firestore →
+  Rules, add this match block alongside the existing "schools" one:
+
+    match /meeting_minutes/{meetingId} {
+      allow read, write: if true;
+    }
+
+  Same open-rules tradeoff as the outreach tracker: small trusted-board tool
+  behind the password gate, no login required. This config is a public
+  identifier, not a secret — it's meant to ship in client-side code.
+  ============================================================================
+-->
+<script>
+(function () {
+  "use strict";
+
+  var firebaseConfig = {
+    apiKey: "AIzaSyCTI8_wse6mW5O5KVP362eNQFpHQRiz_64",
+    authDomain: "kcaa-hub.firebaseapp.com",
+    projectId: "kcaa-hub",
+    storageBucket: "kcaa-hub.firebasestorage.app",
+    messagingSenderId: "36937011424",
+    appId: "1:36937011424:web:825b1d1a1b23e82d514085"
+  };
+  var fsApi = null;
+  var firestoreDb = null;
+  var localMode = false;
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function fmtDate(iso) {
+    if (!iso) return "&mdash;";
+    var d = new Date(iso + "T00:00:00");
+    if (isNaN(d.getTime())) return esc(iso);
+    return d.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+  }
+  function genId() { return "m_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+
+  // ---- state -----------------------------------------------------------
+  var meetings = [];      // all meeting docs
+  var draft = null;       // the meeting object currently open in the editor
+  var draftId = null;
+  var saveTimer = null;
+
+  // ================= ARCHIVE RENDERING =================
+  function renderArchive() {
+    var list = document.getElementById("archiveList");
+    var empty = document.getElementById("archiveEmpty");
+    document.getElementById("meetingCountNote").textContent = meetings.length ? meetings.length + " total" : "";
+    if (!meetings.length) {
+      list.innerHTML = "";
+      empty.style.display = "block";
+      return;
+    }
+    empty.style.display = "none";
+
+    var byYear = {};
+    meetings.forEach(function (m) {
+      var y = (m.date || "").slice(0, 4) || "Undated";
+      (byYear[y] = byYear[y] || []).push(m);
+    });
+    var years = Object.keys(byYear).sort().reverse();
+
+    var html = "";
+    years.forEach(function (y) {
+      html += '<div class="year-group"><p class="year-label">' + esc(y) + '</p>';
+      byYear[y].forEach(function (m) {
+        html += renderMeetingCard(m);
+      });
+      html += "</div>";
+    });
+    list.innerHTML = html;
+
+    list.querySelectorAll(".meeting-summary").forEach(function (el) {
+      el.addEventListener("click", function () {
+        el.closest(".meeting-card").classList.toggle("open");
+      });
+    });
+    list.querySelectorAll("[data-edit-id]").forEach(function (btn) {
+      btn.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+        openEditor(btn.getAttribute("data-edit-id"));
+      });
+    });
+  }
+
+  function renderItemLine(item) {
+    // item is either a raw string (imported legacy data) or a {category,item,notes} object
+    if (typeof item === "string") {
+      return '<div class="row-item">' + esc(item) + "</div>";
+    }
+    if (item && typeof item === "object") {
+      var bits = [];
+      if (item.category) bits.push('<span class="tag">' + esc(item.category) + "</span>");
+      if (item.item) bits.push(esc(item.item));
+      var line = bits.join(" ");
+      if (item.notes) line += ' &mdash; <span class="sub">' + esc(item.notes) + "</span>";
+      return '<div class="row-item">' + line + "</div>";
+    }
+    return "";
+  }
+
+  function renderMeetingCard(m) {
+    var present = (m.attendance || []).filter(function (a) { return a.present; }).length;
+    var total = (m.attendance || []).length;
+    var status = m.status === "final" ? "final" : "draft";
+
+    var body = "";
+
+    if ((m.attendance || []).length) {
+      body += '<div class="mb-section"><div class="mb-h3">Attendance (' + present + "/" + total + ' present)</div><div class="attend-chips">';
+      m.attendance.forEach(function (a) {
+        body += '<span class="attend-chip' + (a.present ? " present" : "") + '">' + esc(a.name) + (a.roles && a.roles.length ? " &middot; " + esc(a.roles.join(", ")) : "") + "</span>";
+      });
+      body += "</div></div>";
+    }
+
+    if ((m.agendaDiscussion || []).length) {
+      body += '<div class="mb-section"><div class="mb-h3">Agenda &amp; discussion</div><div class="row-list">';
+      m.agendaDiscussion.forEach(function (it) { body += renderItemLine(it); });
+      body += "</div></div>";
+    }
+
+    if ((m.oldBusiness || []).length) {
+      body += '<div class="mb-section"><div class="mb-h3">Old business</div><div class="row-list">';
+      m.oldBusiness.forEach(function (it) { body += renderItemLine(it); });
+      body += "</div></div>";
+    }
+
+    if ((m.actionItems || []).length) {
+      body += '<div class="mb-section"><div class="mb-h3">Action items</div><div class="row-list">';
+      m.actionItems.forEach(function (it) {
+        var doneCls = it.done ? " done" : "";
+        body += '<div class="action-item' + doneCls + '"><input type="checkbox" disabled' + (it.done ? " checked" : "") + '>';
+        body += '<span class="a-text" style="flex:1;">';
+        if (it.category) body += '<span class="tag">' + esc(it.category) + "</span> ";
+        body += esc(it.action || "");
+        if (it.assignedTo) body += ' &mdash; <span class="sub">' + esc(it.assignedTo) + "</span>";
+        if (it.notes) body += '<br><span class="sub">' + esc(it.notes) + "</span>";
+        body += "</span>";
+        if (it.dueDate) body += '<span class="due-badge">' + esc(it.dueDate) + "</span>";
+        body += "</div>";
+      });
+      body += "</div></div>";
+    }
+
+    if (m.nextMeeting && (m.nextMeeting.date || m.nextMeeting.location || m.nextMeeting.objectives)) {
+      body += '<div class="mb-section"><div class="mb-h3">Next meeting</div><div class="next-callout">';
+      body += "<strong>" + fmtDate(m.nextMeeting.date) + "</strong>";
+      if (m.nextMeeting.location) body += " &middot; " + esc(m.nextMeeting.location);
+      if (m.nextMeeting.objectives) body += "<br>" + esc(m.nextMeeting.objectives);
+      body += "</div></div>";
+    }
+
+    body += '<div class="card-actions"><button class="btn small ghost" data-edit-id="' + esc(m.id) + '">Edit this meeting</button></div>';
+
+    return (
+      '<div class="meeting-card">' +
+      '<div class="meeting-summary">' +
+      '<span class="date">' + fmtDate(m.date) + "</span>" +
+      '<span class="meta">' + total + " attendee" + (total === 1 ? "" : "s") + (m.actionItems && m.actionItems.length ? " &middot; " + m.actionItems.length + " action items" : "") + "</span>" +
+      '<span class="status-pill ' + status + '">' + status + "</span>" +
+      '<span class="chevron">&#9656;</span>' +
+      "</div>" +
+      '<div class="meeting-body">' + body + "</div>" +
+      "</div>"
+    );
+  }
+
+  // ================= EDITOR =================
+  function blankMeeting() {
+    return {
+      date: new Date().toISOString().slice(0, 10),
+      quorum: "",
+      status: "draft",
+      attendance: [],
+      agendaDiscussion: [],
+      oldBusiness: [],
+      actionItems: [],
+      nextMeeting: { date: "", location: "", objectives: "" },
+      nextDiscussion: [],
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  function openEditor(id) {
+    var m = meetings.find(function (x) { return x.id === id; });
+    if (!m) return;
+    draftId = id;
+    draft = JSON.parse(JSON.stringify(m));
+    draft.attendance = draft.attendance || [];
+    draft.agendaDiscussion = (draft.agendaDiscussion || []).map(normalizeStructRow);
+    draft.oldBusiness = (draft.oldBusiness || []).map(normalizeStructRow);
+    draft.actionItems = draft.actionItems || [];
+    draft.nextMeeting = draft.nextMeeting || { date: "", location: "", objectives: "" };
+    showEditorForm();
+  }
+
+  function normalizeStructRow(it) {
+    // convert legacy raw-string rows into editable {category,item,notes} objects
+    if (typeof it === "string") return { category: "", item: it, notes: "" };
+    return it;
+  }
+
+  function startNewMeeting() {
+    draftId = null;
+    draft = blankMeeting();
+    showEditorForm();
+  }
+
+  function showEditorForm() {
+    document.getElementById("editorPicker").style.display = "none";
+    document.getElementById("editorForm").style.display = "block";
+    document.getElementById("editingDateLabel").textContent = draft.date || "new meeting";
+    document.getElementById("f_date").value = draft.date || "";
+    document.getElementById("f_quorum").value = draft.quorum || "";
+    document.getElementById("f_status").value = draft.status || "draft";
+    document.getElementById("f_nm_date").value = (draft.nextMeeting && draft.nextMeeting.date) || "";
+    document.getElementById("f_nm_location").value = (draft.nextMeeting && draft.nextMeeting.location) || "";
+    document.getElementById("f_nm_objectives").value = (draft.nextMeeting && draft.nextMeeting.objectives) || "";
+    renderAttendanceRows();
+    renderStructRows("agendaRows", draft.agendaDiscussion, "agendaDiscussion");
+    renderStructRows("oldBizRows", draft.oldBusiness, "oldBusiness");
+    renderActionRows();
+    setSaveIndicator("");
+  }
+
+  function closeEditor() {
+    document.getElementById("editorPicker").style.display = "block";
+    document.getElementById("editorForm").style.display = "none";
+    draft = null;
+    draftId = null;
+  }
+
+  function renderAttendanceRows() {
+    var wrap = document.getElementById("attendanceRows");
+    wrap.innerHTML = draft.attendance.map(function (a, i) {
+      return (
+        '<div class="edit-row">' +
+        '<div><label style="font-size:10px;color:var(--ink-faint);">Name</label><input type="text" data-att="' + i + '" data-f="name" value="' + esc(a.name) + '"></div>' +
+        '<div><label style="font-size:10px;color:var(--ink-faint);">Roles</label><input type="text" data-att="' + i + '" data-f="roles" value="' + esc((a.roles || []).join(", ")) + '" placeholder="comma separated"></div>' +
+        '<div class="checks"><label><input type="checkbox" data-att="' + i + '" data-f="present"' + (a.present ? " checked" : "") + "> Present</label></div>" +
+        '<button class="row-remove" data-remove-att="' + i + '">Remove</button>' +
+        "</div>"
+      );
+    }).join("");
+    wrap.querySelectorAll("[data-att]").forEach(function (el) {
+      el.addEventListener("input", function () {
+        var i = +el.getAttribute("data-att"), f = el.getAttribute("data-f");
+        if (f === "present") draft.attendance[i].present = el.checked;
+        else if (f === "roles") draft.attendance[i].roles = el.value.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+        else draft.attendance[i][f] = el.value;
+        scheduleSave();
+      });
+    });
+    wrap.querySelectorAll("[data-remove-att]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        draft.attendance.splice(+el.getAttribute("data-remove-att"), 1);
+        renderAttendanceRows();
+        scheduleSave();
+      });
+    });
+  }
+
+  function renderStructRows(wrapId, arr, field) {
+    var wrap = document.getElementById(wrapId);
+    wrap.innerHTML = arr.map(function (row, i) {
+      row = normalizeStructRow(row);
+      return (
+        '<div class="edit-row">' +
+        '<div><label style="font-size:10px;color:var(--ink-faint);">Category</label><input type="text" data-row="' + i + '" data-f="category" value="' + esc(row.category) + '"></div>' +
+        '<div class="full"><label style="font-size:10px;color:var(--ink-faint);">Item</label><input type="text" data-row="' + i + '" data-f="item" value="' + esc(row.item) + '"></div>' +
+        '<div class="full"><label style="font-size:10px;color:var(--ink-faint);">Notes</label><input type="text" data-row="' + i + '" data-f="notes" value="' + esc(row.notes) + '"></div>' +
+        '<button class="row-remove" data-remove-row="' + i + '">Remove</button>' +
+        "</div>"
+      );
+    }).join("");
+    wrap.querySelectorAll("[data-row]").forEach(function (el) {
+      el.addEventListener("input", function () {
+        var i = +el.getAttribute("data-row"), f = el.getAttribute("data-f");
+        arr[i] = normalizeStructRow(arr[i]);
+        arr[i][f] = el.value;
+        scheduleSave();
+      });
+    });
+    wrap.querySelectorAll("[data-remove-row]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        arr.splice(+el.getAttribute("data-remove-row"), 1);
+        renderStructRows(wrapId, arr, field);
+        scheduleSave();
+      });
+    });
+  }
+
+  function renderActionRows() {
+    var wrap = document.getElementById("actionRows");
+    wrap.innerHTML = draft.actionItems.map(function (a, i) {
+      return (
+        '<div class="edit-row">' +
+        '<div><label style="font-size:10px;color:var(--ink-faint);">Category</label><input type="text" data-act="' + i + '" data-f="category" value="' + esc(a.category) + '"></div>' +
+        '<div class="full"><label style="font-size:10px;color:var(--ink-faint);">Action</label><input type="text" data-act="' + i + '" data-f="action" value="' + esc(a.action) + '"></div>' +
+        '<div><label style="font-size:10px;color:var(--ink-faint);">Assigned to</label><input type="text" data-act="' + i + '" data-f="assignedTo" value="' + esc(a.assignedTo) + '"></div>' +
+        '<div><label style="font-size:10px;color:var(--ink-faint);">Due date</label><input type="text" data-act="' + i + '" data-f="dueDate" value="' + esc(a.dueDate) + '" placeholder="e.g. Oct 3"></div>' +
+        '<div class="full"><label style="font-size:10px;color:var(--ink-faint);">Notes</label><input type="text" data-act="' + i + '" data-f="notes" value="' + esc(a.notes) + '"></div>' +
+        '<div class="checks"><label><input type="checkbox" data-act="' + i + '" data-f="done"' + (a.done ? " checked" : "") + "> Done</label></div>" +
+        '<button class="row-remove" data-remove-act="' + i + '">Remove</button>' +
+        "</div>"
+      );
+    }).join("");
+    wrap.querySelectorAll("[data-act]").forEach(function (el) {
+      el.addEventListener("input", function () {
+        var i = +el.getAttribute("data-act"), f = el.getAttribute("data-f");
+        if (f === "done") draft.actionItems[i].done = el.checked;
+        else draft.actionItems[i][f] = el.value;
+        scheduleSave();
+      });
+    });
+    wrap.querySelectorAll("[data-remove-act]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        draft.actionItems.splice(+el.getAttribute("data-remove-act"), 1);
+        renderActionRows();
+        scheduleSave();
+      });
+    });
+  }
+
+  document.getElementById("addAttendanceBtn").addEventListener("click", function () {
+    draft.attendance.push({ name: "", present: true, roles: [] });
+    renderAttendanceRows();
+    scheduleSave();
+  });
+  document.getElementById("addAgendaBtn").addEventListener("click", function () {
+    draft.agendaDiscussion.push({ category: "", item: "", notes: "" });
+    renderStructRows("agendaRows", draft.agendaDiscussion, "agendaDiscussion");
+    scheduleSave();
+  });
+  document.getElementById("addOldBizBtn").addEventListener("click", function () {
+    draft.oldBusiness.push({ category: "", item: "", notes: "" });
+    renderStructRows("oldBizRows", draft.oldBusiness, "oldBusiness");
+    scheduleSave();
+  });
+  document.getElementById("addActionBtn").addEventListener("click", function () {
+    draft.actionItems.push({ action: "", category: "", assignedTo: "", dueDate: "", notes: "", done: false });
+    renderActionRows();
+    scheduleSave();
+  });
+
+  ["f_date", "f_quorum", "f_status", "f_nm_date", "f_nm_location", "f_nm_objectives"].forEach(function (id) {
+    document.getElementById(id).addEventListener("input", function () {
+      draft.date = document.getElementById("f_date").value;
+      draft.quorum = document.getElementById("f_quorum").value;
+      draft.status = document.getElementById("f_status").value;
+      draft.nextMeeting = {
+        date: document.getElementById("f_nm_date").value,
+        location: document.getElementById("f_nm_location").value,
+        objectives: document.getElementById("f_nm_objectives").value
+      };
+      document.getElementById("editingDateLabel").textContent = draft.date || "new meeting";
+      scheduleSave();
+    });
+  });
+
+  document.getElementById("newMeetingBtn").addEventListener("click", startNewMeeting);
+  document.getElementById("closeEditorBtn").addEventListener("click", closeEditor);
+
+  document.getElementById("tabArchiveBtn").addEventListener("click", function () { switchTab("archive"); });
+  document.getElementById("tabEditorBtn").addEventListener("click", function () { switchTab("editor"); });
+  function switchTab(which) {
+    document.getElementById("tabArchiveBtn").classList.toggle("active", which === "archive");
+    document.getElementById("tabEditorBtn").classList.toggle("active", which === "editor");
+    document.getElementById("viewArchive").classList.toggle("active", which === "archive");
+    document.getElementById("viewEditor").classList.toggle("active", which === "editor");
+  }
+
+  function setSaveIndicator(state) {
+    var el = document.getElementById("saveIndicator");
+    el.classList.remove("saving", "saved");
+    if (state === "saving") { el.textContent = "Saving…"; el.classList.add("saving"); }
+    else if (state === "saved") { el.textContent = "Saved"; el.classList.add("saved"); }
+    else el.textContent = "";
+  }
+
+  function scheduleSave() {
+    setSaveIndicator("saving");
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(doSave, 600);
+  }
+
+  function doSave() {
+    if (!draft) return;
+    draft.updatedAt = new Date().toISOString();
+    var payload = JSON.parse(JSON.stringify(draft));
+    delete payload.id;
+
+    if (localMode || !firestoreDb) {
+      if (!draftId) { draftId = genId(); payload.id = draftId; meetings.push(payload); }
+      else {
+        var i = meetings.findIndex(function (m) { return m.id === draftId; });
+        payload.id = draftId;
+        if (i !== -1) meetings[i] = payload; else meetings.push(payload);
+      }
+      renderArchive();
+      setSaveIndicator("saved");
+      return;
+    }
+
+    if (!draftId) {
+      fsApi.addDoc(fsApi.collection(firestoreDb, "meeting_minutes"), payload).then(function (ref) {
+        draftId = ref.id;
+        setSaveIndicator("saved");
+      }).catch(function (e) { console.error("create failed", e); });
+    } else {
+      fsApi.setDoc(fsApi.doc(firestoreDb, "meeting_minutes", draftId), payload).then(function () {
+        setSaveIndicator("saved");
+      }).catch(function (e) { console.error("save failed", e); });
+    }
+  }
+
+  // ---- historical import -------------------------------------------
+  function importLegacyMinutes() {
+    var statusEl = document.getElementById("importStatus");
+    var dataEl = document.getElementById("legacyData");
+    if (!dataEl) { statusEl.textContent = "No legacy data found."; return; }
+    var legacy;
+    try { legacy = JSON.parse(dataEl.textContent); } catch (e) {
+      statusEl.textContent = "Could not parse legacy data.";
+      return;
+    }
+    var existingDates = {};
+    meetings.forEach(function (m) { if (m.date) existingDates[m.date] = true; });
+    var toImport = legacy.filter(function (m) { return m.date && !existingDates[m.date]; });
+    if (!toImport.length) {
+      statusEl.textContent = "Already imported \u2014 nothing new to add.";
+      return;
+    }
+    statusEl.textContent = "Importing " + toImport.length + " meeting(s)\u2026";
+
+    if (localMode || !firestoreDb) {
+      toImport.forEach(function (m) {
+        var copy = JSON.parse(JSON.stringify(m));
+        copy.id = genId();
+        meetings.push(copy);
+      });
+      renderArchive();
+      statusEl.textContent = "Imported " + toImport.length + " meeting(s) (local mode \u2014 not shared).";
+      return;
+    }
+
+    var remaining = toImport.length;
+    var failed = 0;
+    toImport.forEach(function (m) {
+      var copy = JSON.parse(JSON.stringify(m));
+      fsApi.addDoc(fsApi.collection(firestoreDb, "meeting_minutes"), copy)
+        .catch(function (e) { failed++; console.error("import failed for", m.date, e); })
+        .then(function () {
+          remaining--;
+          if (remaining === 0) {
+            statusEl.textContent = failed
+              ? ("Imported " + (toImport.length - failed) + " of " + toImport.length + " \u2014 " + failed + " failed (see console). Try again to retry the failed ones.")
+              : ("Imported " + toImport.length + " meeting(s).");
+          }
+        });
+    });
+  }
+  document.getElementById("importLegacyBtn").addEventListener("click", importLegacyMinutes);
+
+  // ---- boot ------------------------------------------------------------
+  renderArchive();
+
+  function goLocalMode(reason) {
+    if (reason) console.error("meeting minutes: falling back to local mode —", reason);
+    localMode = true;
+    document.getElementById("syncBanner").classList.add("show");
+  }
+
+  (function initFirebase() {
+    if (!firebaseConfig.apiKey || firebaseConfig.apiKey.indexOf("REPLACE_WITH") === 0) {
+      goLocalMode("firebaseConfig still has placeholder values");
+      return;
+    }
+    Promise.all([
+      import("https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js")
+    ]).then(function (mods) {
+      var appApi = mods[0], firestoreApi = mods[1];
+      fsApi = firestoreApi;
+
+      var app = appApi.initializeApp(firebaseConfig);
+      firestoreDb = firestoreApi.getFirestore(app);
+
+      firestoreApi.onSnapshot(
+        firestoreApi.collection(firestoreDb, "meeting_minutes"),
+        function (snap) {
+          meetings = snap.docs.map(function (d) {
+            var data = d.data() || {};
+            data.id = d.id;
+            return data;
+          });
+          meetings.sort(function (a, b) { return (b.date || "").localeCompare(a.date || ""); });
+          renderArchive();
+        },
+        function (err) { goLocalMode("onSnapshot error: " + err); }
+      );
+    }).catch(function (e) {
+      goLocalMode("could not load Firebase SDK: " + e);
+    });
+  })();
+})();
+</script>
+
+</body>
+</html>
