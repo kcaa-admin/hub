@@ -151,6 +151,22 @@
   .cs-caption { text-align: center; font-size: 13px; color: var(--ink-soft); margin-top: 16px; }
   .cs-caption b { color: var(--ink); }
 
+  /* --- post anatomy diagram (reuses .cs-wrap / .cs-outer / .cs-margin-tag / .cs-caption above) --- */
+  .pa-frame { position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: 10px; overflow: hidden; background: linear-gradient(160deg, #4a5058, #1c1e21 65%); }
+  .pa-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.16) 30%, rgba(0,0,0,0.14) 56%, rgba(0,0,0,0.82) 100%); }
+  .pa-top-row { position: absolute; top: 4.4%; left: 5.2%; right: 5.2%; display: flex; align-items: center; justify-content: space-between; }
+  .pa-logo-box { width: 15%; aspect-ratio: 2.2 / 1; background: rgba(255,255,255,0.92); border-radius: 3px; }
+  .pa-handle-pill { font-size: 8px; font-weight: 700; color: rgba(255,255,255,0.9); background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.3); padding: 3px 8px; border-radius: 999px; }
+  .pa-stack { position: absolute; left: 5.2%; right: 24%; bottom: 22%; }
+  .pa-eyebrow { display: inline-block; background: var(--red); color: #fff; font-size: 8px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 8px; border-radius: 999px; margin-bottom: 8px; }
+  .pa-headline-bar { height: 13px; width: 92%; background: #fff; border-radius: 3px; margin-bottom: 6px; }
+  .pa-headline-bar.short { width: 62%; margin-bottom: 10px; }
+  .pa-lede-bar { height: 6px; width: 80%; background: rgba(255,255,255,0.55); border-radius: 3px; margin-bottom: 4px; }
+  .pa-lede-bar.short { width: 60%; }
+  .pa-cta-bar { position: absolute; left: 5.2%; right: 5.2%; bottom: 3.7%; background: #fff; border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; }
+  .pa-cta-text { font-size: 8px; font-weight: 800; color: #0a0a0a; }
+  .pa-cta-email { font-size: 8px; font-weight: 800; color: var(--red); }
+
   /* --- minimum size ladder --- */
   .size-ladder { display: flex; align-items: flex-end; gap: 22px; flex-wrap: wrap; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 26px 22px 20px; box-shadow: var(--shadow); }
   .size-step { display: flex; flex-direction: column; align-items: center; gap: 8px; }
@@ -226,6 +242,8 @@
         <table class="changelog-table">
           <thead><tr><th>Version</th><th>Date</th><th>By</th><th>Changes</th></tr></thead>
           <tbody>
+            <tr><td class="ver">v0.8</td><td>2026-09-21</td><td class="who">Claude</td><td>Removed the "Open questions for the board" section; added a 1&ndash;2 posts/week cadence target under Posting mechanics; renumbered the sections after it and fixed the now-dangling section reference in the house-style example.</td></tr>
+            <tr><td class="ver">v0.7</td><td>2026-09-21</td><td class="who">Claude</td><td>Added a "Post anatomy" spec to section 09, with a measured diagram sourced from the two published photo templates (safe margins, logo/handle slot, text stack, scrim, CTA bar) and a pointer to copy from Social/src/; trimmed the now-redundant logo/crop rule under Posting mechanics.</td></tr>
             <tr><td class="ver">v0.6</td><td>2026-09-21</td><td class="who">Claude</td><td>Added section 09 (social media) covering lifestyle photography, minor photo consent, okay/not-okay post types, and posting mechanics; renumbered the sections after it; added three open items for the board.</td></tr>
             <tr><td class="ver">v0.5</td><td>2026-09-10</td><td class="who">Claude</td><td>Replaced the flat cross-document nav bar with a single "Back to Hub" link, to match the Hub becoming the primary entry point; updated section 11's stylesheet to match.</td></tr>
             <tr><td class="ver">v0.4</td><td>2026-09-10</td><td class="who">Claude</td><td>Added this change log; fixed the dark-background logo card to match the light card's size; turned section 10's pattern list into live visual mini-demos; added a copy-paste house-style stylesheet (section 11).</td></tr>
@@ -238,7 +256,7 @@
     </div>
   </details>
 
-  <p class="eyebrow status">Draft &middot; v0.6 &middot; pending board review</p>
+  <p class="eyebrow status">Draft &middot; v0.8 &middot; pending board review</p>
   <h1>KCAA Brand Identity Guide</h1>
   <p class="lede">Built directly from the approved core logo files. Colors are sampled pixel values from the source PNGs, not estimates. Measurements below are taken from the actual master file, not illustrative guesses.</p>
 
@@ -435,6 +453,58 @@
       <strong>Before posting a photo of a minor:</strong> confirm a parent/guardian consent is on file for that player. If there's any doubt, don't post it &mdash; check with the registrar first. This applies to stories and reels too, not just feed posts.
     </div>
 
+    <h3 style="margin-top:28px;">Post anatomy</h3>
+    <p class="note" style="margin-bottom:12px;">Real measurements from the two published photo templates below, not illustrative guesses &mdash; same as the logo measurements in section 02.</p>
+    <div class="cs-wrap" style="margin-bottom:14px;">
+      <div class="cs-outer" style="max-width:340px;">
+        <div class="pa-frame">
+          <div class="pa-scrim"></div>
+          <div class="pa-top-row">
+            <div class="pa-logo-box"></div>
+            <span class="pa-handle-pill">@kcaatoronto</span>
+          </div>
+          <div class="pa-stack">
+            <span class="pa-eyebrow">Now Recruiting</span>
+            <div class="pa-headline-bar"></div>
+            <div class="pa-headline-bar short"></div>
+            <div class="pa-lede-bar"></div>
+            <div class="pa-lede-bar short"></div>
+          </div>
+          <div class="pa-cta-bar">
+            <span class="pa-cta-text">Interested?</span>
+            <span class="pa-cta-email">info@kcaa.ca</span>
+          </div>
+        </div>
+      </div>
+      <p class="cs-caption">1080&times;1080 canvas &middot; <b>56px</b> side margins &middot; <b>48px</b> top &middot; <b>40px</b> bottom &middot; <b>44px</b> logo height &mdash; measured from <code>Social/src/volunteer-post-1-hero.html</code> and <code>volunteer-post-3-mission.html</code>.</p>
+    </div>
+    <div class="rule-grid">
+      <div class="rule-card">
+        <h3>Canvas &amp; margins</h3>
+        <p class="note">1080&times;1080 square. Keep 56px clear on both sides, 48px on top, and 40px on the bottom &mdash; nothing sits in that margin, including the CTA bar.</p>
+      </div>
+      <div class="rule-card">
+        <h3>Top-row</h3>
+        <p class="note">Reversed/white logo (44px tall) top-left on a photo background; the black logo (section 01) once the background is light instead. @handle or a short context badge top-right &mdash; never both at once.</p>
+      </div>
+      <div class="rule-card">
+        <h3>Text stack</h3>
+        <p class="note">Eyebrow pill (red, uppercase) &rarr; Poppins ExtraBold headline &rarr; one IBM Plex Sans lede line. Always left-aligned, anchored just above the CTA bar.</p>
+      </div>
+      <div class="rule-card">
+        <h3>Scrim</h3>
+        <p class="note">A dark gradient sits behind any text on a photo &mdash; strongest at the top and bottom, lightest through the middle third, so the photo still reads.</p>
+      </div>
+      <div class="rule-card">
+        <h3>CTA bar</h3>
+        <p class="note">White rounded bar, bold black CTA line + gray subtext, red Poppins-bold email. The fixed closer on every photo template &mdash; don't redesign it per post.</p>
+      </div>
+      <div class="rule-card">
+        <h3>Start from a template</h3>
+        <p class="note">Copy one of the three files in <code>Social/src/</code> instead of building from scratch. Keep this anatomy untouched &mdash; swap only the photo, headline, and lede.</p>
+      </div>
+    </div>
+
     <h3 style="margin-top:28px;">What's okay to post</h3>
     <div class="voice-example" style="margin-top:10px;">
       <div class="ve-card yes">
@@ -466,8 +536,8 @@
         <p class="note">Same four words as section 08 &mdash; welcoming, plain-spoken, community-first, competitive. One program per post; don't mix two programs' news in one caption.</p>
       </div>
       <div class="rule-card">
-        <h3>Logo &amp; color in a crop</h3>
-        <p class="note">Only crop from the approved lockups in section 01, and keep the clear space from section 02 even in a square or story crop. Use that program's color (section 06) as the accent when the post is program-specific.</p>
+        <h3>Program color accent</h3>
+        <p class="note">Use that program's color (section 06) as the accent when a post is program-specific. Logo, margins, and crop rules are covered above under Post anatomy.</p>
       </div>
       <div class="rule-card">
         <h3>Caption shape</h3>
@@ -477,22 +547,15 @@
         <h3>Hashtags</h3>
         <p class="note">A short, consistent set &mdash; org tag plus the program tag. Stacking a wall of tags reads as noise, not plain-spoken.</p>
       </div>
+      <div class="rule-card">
+        <h3>Cadence</h3>
+        <p class="note">Target 1&ndash;2 posts a week &mdash; enough to stay active without becoming a burden on the volunteers running the accounts.</p>
+      </div>
     </div>
   </section>
 
   <section class="block">
-    <h2>10 &middot; Open questions for the board</h2>
-    <ul class="open-list">
-      <li class="open-item"><span class="flag">CHECK</span><span class="body"><span class="h">Color clash &mdash; Hockey &amp; Basketball</span>These are the two currently running programs. Confirm KCAA Blue and Court Orange don't clash with jerseys, banners, or equipment already in use for either before rolling the color system out.</span></li>
-      <li class="open-item"><span class="flag">DECIDE</span><span class="body"><span class="h">Junior Tigers program</span>Junior Tigers already has its own color and logo. Confirm whether it stays a distinct sub-brand outside this system, or gets folded into the KCAA program-color system above &mdash; and send the existing assets so this guide can account for them either way.</span></li>
-      <li class="open-item"><span class="flag">CONFIRM</span><span class="body"><span class="h">Minor photo consent process</span>Confirm whether registration already collects a photo/media consent for players under 18, or whether one needs to be added &mdash; and who social media posters should check with when a specific player's status is unclear.</span></li>
-      <li class="open-item"><span class="flag">DECIDE</span><span class="body"><span class="h">Social account access</span>Confirm who holds admin/posting access to the Instagram and Facebook accounts today, and who's authorized to add or remove posters going forward.</span></li>
-      <li class="open-item"><span class="flag">DECIDE</span><span class="body"><span class="h">Posting cadence</span>No target posting frequency is set yet. Decide a rough cadence (e.g. weekly) so the accounts stay active without becoming a burden on volunteers.</span></li>
-    </ul>
-  </section>
-
-  <section class="block">
-    <h2>11 &middot; Using this as the house style</h2>
+    <h2>10 &middot; Using this as the house style</h2>
     <p class="note" style="margin-bottom:16px;">Going forward, internal documents &mdash; financial reports, meeting notes, the project roadmap, this guide &mdash; should be built as self-contained HTML files like this one, not Google Docs or Slides. That's what keeps the brand pixel-accurate and consistent instead of drifting doc to doc. To start a new one: copy this file, keep the &lt;style&gt; block and its color/spacing tokens untouched, and replace the content sections.</p>
     <div class="demo-grid">
       <div class="rule-card">
@@ -531,7 +594,7 @@
           <div class="mini-open"><span class="mini-flag">Decide</span><span>One-line ask for someone else</span></div>
         </div>
         <h3>Open items</h3>
-        <p class="note">Anything needing a decision from someone else uses the tagged list style in section 10 &mdash; a flag (CHECK / DECIDE / CONFIRM) plus a one-line ask.</p>
+        <p class="note">Anything needing a decision from someone else uses the tagged list style shown here &mdash; a flag (CHECK / DECIDE / CONFIRM) plus a one-line ask.</p>
       </div>
       <div class="rule-card">
         <div class="mini-preview mini-row">
@@ -554,7 +617,7 @@
   </section>
 
   <section class="block">
-    <h2>12 &middot; Copy-paste stylesheet</h2>
+    <h2>11 &middot; Copy-paste stylesheet</h2>
     <p class="note" style="margin-bottom:14px;">The base tokens and components used across every document in this set (hub, roadmap, volunteer plan, this guide). Start a new internal doc by pasting this whole block into a &lt;style&gt; tag, then add page-specific classes on top &mdash; never redefine a token that's already here.</p>
     <div class="code-card">
       <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('house-style-css').textContent).then(()=>{this.textContent='Copied';setTimeout(()=>this.textContent='Copy',1500)})">Copy</button>
@@ -616,7 +679,7 @@ footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line);
     </div>
   </section>
 
-  <footer>KCAA internal &middot; brand guide v0.6 &middot; source files: FINAL-KCAA-CORE-Logo-RGB.png / [FINAL] KCAA white CORE Logo RGB.png</footer>
+  <footer>KCAA internal &middot; brand guide v0.8 &middot; source files: FINAL-KCAA-CORE-Logo-RGB.png / [FINAL] KCAA white CORE Logo RGB.png</footer>
 </div>
 
 </body></html>
