@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=IBM+Plex+Sans:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --red: #d01048; --blue: #3090d8; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; width: 1080px; height: 1080px; overflow: hidden; }
+  body { position: relative; font-family: 'IBM Plex Sans', -apple-system, sans-serif; background: #000; }
+
+  .photo {
+    position: absolute; inset: 0;
+    background-image: url('assets/baseball_group.jpeg');
+    background-size: cover;
+    background-position: 50% 42%;
+  }
+  .scrim {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(8,10,14,0.90) 0%, rgba(8,10,14,0.35) 30%, rgba(8,10,14,0.20) 55%, rgba(8,10,14,0.92) 100%);
+  }
+  .frame { position: absolute; inset: 0; }
+
+  .top-row { position: absolute; top: 48px; left: 56px; right: 56px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { height: 44px; }
+  .badge { font-size: 15px; font-weight: 600; color: #fff; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.35); padding: 6px 15px; border-radius: 999px; letter-spacing: 0.02em; }
+
+  .quote-wrap { position: absolute; left: 56px; right: 56px; bottom: 300px; max-width: 880px; }
+  .mark { font-family: 'Poppins', sans-serif; font-size: 52px; color: var(--red); line-height: 0.5; display: block; margin-bottom: 4px; }
+  blockquote { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 32px; line-height: 1.25; color: #fff; margin: 0; letter-spacing: -0.005em; text-wrap: balance; text-shadow: 0 2px 18px rgba(0,0,0,0.3); }
+  .attrib { margin-top: 14px; font-size: 16px; font-weight: 600; color: #d7dade; letter-spacing: 0.02em; }
+
+  .bottom { position: absolute; left: 56px; right: 56px; bottom: 40px; }
+  .lede { font-size: 19px; font-weight: 500; color: #fff; margin: 0 0 16px; max-width: 760px; line-height: 1.42; }
+  .cta-bar { display: flex; align-items: center; justify-content: space-between; background: #fff; border-radius: 16px; padding: 18px 26px; }
+  .cta-text { font-size: 20px; font-weight: 700; color: #0a0a0a; }
+  .cta-text .sub { display:block; font-size: 15px; font-weight: 500; color: #565f68; margin-top: 3px; }
+  .cta-email { font-family: 'Poppins', sans-serif; font-size: 22px; font-weight: 800; color: var(--red); white-space: nowrap; }
+</style>
+</head>
+<body>
+  <div class="photo"></div>
+  <div class="scrim"></div>
+  <div class="frame">
+    <div class="top-row">
+      <img class="logo" src="assets/logo-white.png">
+      <span class="badge">Across the GTA</span>
+    </div>
+    <div class="quote-wrap">
+      <span class="mark">&ldquo;</span>
+      <blockquote>Foster a healthy community through the principles learned in sport, to equip future generations with confidence to excel in the playing field of life.</blockquote>
+      <div class="attrib">&mdash; KCAA Mission</div>
+    </div>
+    <div class="bottom">
+      <p class="lede">None of this runs without volunteers. Coach, help run events, or lend your skills off the field &mdash; and pick up real experience while you do.</p>
+      <div class="cta-bar">
+        <div class="cta-text">Join us<span class="sub">Subject line: "Volunteer Interest"</span></div>
+        <div class="cta-email">info@kcaa.ca</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

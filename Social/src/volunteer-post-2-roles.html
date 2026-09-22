@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f3f5f7; --surface: #ffffff; --ink: #0a0a0a; --ink-soft: #565f68; --ink-faint: #889198;
+    --line: #dde2e6; --red: #d01048; --red-soft: #fbe6ec; --blue: #3090d8; --blue-soft: #e6f2fb;
+    --shadow: 0 1px 2px rgba(10,10,10,0.04), 0 8px 24px -14px rgba(10,10,10,0.16);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; width: 1080px; height: 1080px; overflow: hidden; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+  }
+  .page { position: relative; width: 1080px; height: 1080px; }
+
+  .top-row { position: absolute; top: 44px; left: 56px; right: 56px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { height: 38px; }
+  .eyebrow { font-size: 17px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); }
+
+  h1 { position: absolute; top: 108px; left: 56px; right: 56px; font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 48px; letter-spacing: -0.01em; margin: 0; line-height: 1.06; }
+  .lede { position: absolute; top: 182px; left: 56px; right: 56px; font-size: 18px; color: var(--ink-soft); max-width: 780px; margin: 0; line-height: 1.42; }
+
+  .grid { position: absolute; top: 258px; left: 56px; right: 56px; bottom: 148px; display: grid; grid-template-rows: 1fr 1fr; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 20px 22px; box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; }
+  .tag { display: inline-block; align-self: flex-start; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 11px; border-radius: 999px; margin-bottom: 10px; }
+  .tag.r { background: var(--red-soft); color: var(--red); }
+  .tag.b { background: var(--blue-soft); color: var(--blue); }
+  .card h3 { font-family: 'Poppins', sans-serif; font-size: 21px; font-weight: 700; margin: 0 0 6px; }
+  .card p { font-size: 15px; color: var(--ink-soft); margin: 0 0 8px; line-height: 1.38; flex: 1; }
+  .fit { font-size: 13px; color: var(--ink-faint); }
+  .fit strong { color: var(--ink-soft); font-weight: 700; }
+
+  .cta-bar { position: absolute; left: 56px; right: 56px; bottom: 40px; display: flex; align-items: center; justify-content: space-between; background: var(--ink); border-radius: 16px; padding: 20px 28px; }
+  .cta-text { color: #fff; font-size: 19px; font-weight: 700; }
+  .cta-text .sub { display: block; font-size: 14px; font-weight: 500; color: #b4bac0; margin-top: 3px; }
+  .cta-email { font-family: 'Poppins', sans-serif; font-size: 22px; font-weight: 800; color: #fff; background: var(--red); padding: 11px 20px; border-radius: 10px; white-space: nowrap; }
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="top-row">
+      <img class="logo" src="assets/logo-black.png">
+      <span class="eyebrow">Now Recruiting &middot; GTA</span>
+    </div>
+    <h1>4 Ways to Get Involved</h1>
+    <p class="lede">KCAA runs on volunteers. Whatever you're studying or into, there's a role that puts it to use &mdash; on the ice, on the court, or behind the scenes.</p>
+    <div class="grid">
+      <div class="card">
+        <span class="tag r">Social Media / Comms</span>
+        <h3>Tell our story</h3>
+        <p>Run our Instagram &amp; Facebook, capture photos and video at events.</p>
+        <span class="fit"><strong>Good fit for:</strong> marketing, communications, or media students</span>
+      </div>
+      <div class="card">
+        <span class="tag r">Biz Mgmt / Admin</span>
+        <h3>Keep things running</h3>
+        <p>Help with registration, sponsor outreach, and day-to-day support.</p>
+        <span class="fit"><strong>Good fit for:</strong> business, commerce, or accounting students</span>
+      </div>
+      <div class="card">
+        <span class="tag b">Skate &amp; Hockey Program</span>
+        <h3>Be on the ice</h3>
+        <p>Assist our Learn-to-Skate and youth hockey sessions on the ice.</p>
+        <span class="fit"><strong>Good fit for:</strong> skating/hockey experience</span>
+      </div>
+      <div class="card">
+        <span class="tag b">Program Development</span>
+        <h3>Help us grow</h3>
+        <p>Help plan basketball &amp; baseball events and grow new programs.</p>
+        <span class="fit"><strong>Good fit for:</strong> big-picture, idea-driven students</span>
+      </div>
+    </div>
+    <div class="cta-bar">
+      <div class="cta-text">Real experience &middot; flexible hours &middot; community hours<span class="sub">All ages welcome &middot; high school &amp; university students</span></div>
+      <div class="cta-email">info@kcaa.ca</div>
+    </div>
+  </div>
+</body>
+</html>

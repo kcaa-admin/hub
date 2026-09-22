@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=IBM+Plex+Sans:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #d01048; --blue: #3090d8; --ink: #0a0a0a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; width: 1080px; height: 1080px; overflow: hidden; }
+  body {
+    position: relative;
+    font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+    background: #000;
+  }
+  .photo {
+    position: absolute; inset: 0;
+    background-image: url('assets/basketball_huddle.png');
+    background-size: cover;
+    background-position: 50% 30%;
+  }
+  .scrim {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(10,10,10,0.72) 0%, rgba(10,10,10,0.12) 32%, rgba(10,10,10,0.10) 60%, rgba(10,10,10,0.88) 100%);
+  }
+  .frame { position: absolute; inset: 0; }
+
+  .top-row { position: absolute; top: 48px; left: 56px; right: 56px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { height: 44px; }
+  .handle { font-size: 19px; font-weight: 600; color: #fff; letter-spacing: 0.01em; opacity: 0.92; }
+
+  .middle { position: absolute; left: 56px; right: 56px; bottom: 258px; }
+  .eyebrow { display: inline-block; background: var(--red); color: #fff; font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 0.14em; text-transform: uppercase; padding: 7px 16px; border-radius: 999px; margin-bottom: 18px; }
+  h1 { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 62px; line-height: 1.06; color: #fff; margin: 0 0 16px; letter-spacing: -0.01em; text-wrap: balance; text-shadow: 0 2px 20px rgba(0,0,0,0.25); }
+  .lede { font-size: 22px; font-weight: 500; color: #f2f3f4; max-width: 780px; margin: 0; line-height: 1.46; }
+
+  .bottom { position: absolute; left: 56px; right: 56px; bottom: 40px; }
+  .roles { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+  .role-pill { background: rgba(255,255,255,0.14); backdrop-filter: blur(2px); border: 1px solid rgba(255,255,255,0.35); color: #fff; font-size: 17px; font-weight: 600; padding: 9px 18px; border-radius: 999px; }
+  .role-pill .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:9px; position:relative; top:-1px; }
+  .role-pill.b .dot { background: var(--blue); }
+  .role-pill.r .dot { background: var(--red); }
+
+  .cta-bar { display: flex; align-items: center; justify-content: space-between; background: #fff; border-radius: 16px; padding: 18px 26px; }
+  .cta-text { font-size: 20px; font-weight: 700; color: var(--ink); }
+  .cta-text .sub { display:block; font-size: 15px; font-weight: 500; color: #565f68; margin-top: 3px; }
+  .cta-email { font-family: 'Poppins', sans-serif; font-size: 22px; font-weight: 800; color: var(--red); white-space: nowrap; }
+</style>
+</head>
+<body>
+  <div class="photo"></div>
+  <div class="scrim"></div>
+  <div class="frame">
+    <div class="top-row">
+      <img class="logo" src="assets/logo-white.png">
+      <div class="handle">@kcaatoronto</div>
+    </div>
+    <div class="middle">
+      <span class="eyebrow">Now Recruiting</span>
+      <h1>Volunteer&nbsp;With&nbsp;KCAA</h1>
+      <p class="lede">Real experience, flexible hours, and community-hours credit &mdash; help run youth &amp; adult sports programs across the GTA.</p>
+    </div>
+    <div class="bottom">
+      <div class="roles">
+        <span class="role-pill r"><span class="dot"></span>Social &amp; Comms</span>
+        <span class="role-pill r"><span class="dot"></span>Biz Mgmt &amp; Admin</span>
+        <span class="role-pill b"><span class="dot"></span>Skate &amp; Hockey</span>
+        <span class="role-pill b"><span class="dot"></span>Program Development</span>
+      </div>
+      <div class="cta-bar">
+        <div class="cta-text">Interested?<span class="sub">Subject line: "Volunteer Interest"</span></div>
+        <div class="cta-email">info@kcaa.ca</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
