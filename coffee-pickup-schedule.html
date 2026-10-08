@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KCAA Coffee Pickup Schedule</title>
+<meta name="description" content="Live, shared rotation for who picks up coffee from Tim Hortons for each hockey session.">
+<style>
+  :root {
+    --bg: #f3f5f7; --surface: #ffffff; --ink: #0a0a0a; --ink-soft: #565f68; --ink-faint: #889198;
+    --line: #dde2e6; --red: #d01048; --red-soft: #fbe6ec; --blue: #3090d8; --blue-soft: #e6f2fb;
+    --green: #2f8a4e; --green-soft: #e6f5ea;
+    --shadow: 0 1px 2px rgba(10,10,10,0.04), 0 8px 24px -14px rgba(10,10,10,0.16);
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    --bg: #101214; --surface: #1a1c1f; --ink: #f1f2f3; --ink-soft: #b4bac0; --ink-faint: #7d848b;
+    --line: #2c2f33; --red: #ef4778; --red-soft: #331a22; --blue: #5cabe6; --blue-soft: #17283a;
+    --green: #43b06a; --green-soft: #17301f;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 30px -14px rgba(0,0,0,0.6);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101214; --surface: #1a1c1f; --ink: #f1f2f3; --ink-soft: #b4bac0; --ink-faint: #7d848b;
+      --line: #2c2f33; --red: #ef4778; --red-soft: #331a22; --blue: #5cabe6; --blue-soft: #17283a;
+      --green: #43b06a; --green-soft: #17301f;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 30px -14px rgba(0,0,0,0.6);
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, "Segoe UI", ui-sans-serif, system-ui, sans-serif; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  .page { max-width: 820px; margin: 0 auto; padding: 32px 24px 100px; }
+
+  .back-nav { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--ink-soft); text-decoration: none; padding: 10px 4px; margin-bottom: 16px; }
+  .back-nav:hover, .back-nav:focus-visible { color: var(--blue); }
+  .back-nav .arrow { font-size: 15px; }
+
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue); margin: 0 0 10px; }
+  h1 { font-size: clamp(26px, 4vw, 36px); font-weight: 800; letter-spacing: -0.01em; margin: 0 0 12px; text-wrap: balance; }
+  .lede { font-size: 15.5px; color: var(--ink-soft); max-width: 66ch; margin: 0 0 20px; }
+  .lede a { color: var(--blue); text-decoration: none; }
+  .lede a:hover { text-decoration: underline; }
+
+  .callout { background: var(--blue-soft); border: 1px solid color-mix(in srgb, var(--blue) 30%, var(--line)); border-radius: 12px; padding: 14px 18px; font-size: 13.5px; margin-bottom: 14px; }
+  .callout strong { color: var(--blue); }
+
+  .map-embed { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); margin-bottom: 28px; background: var(--surface); }
+  .map-embed iframe { display: block; width: 100%; height: 220px; border: 0; }
+  .map-embed .map-link { display: block; padding: 10px 14px; font-size: 12.5px; font-weight: 700; color: var(--blue); text-decoration: none; border-top: 1px solid var(--line); }
+  .map-embed .map-link:hover { background: var(--blue-soft); }
+
+  section.block { margin-bottom: 36px; }
+  h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-faint); margin: 0 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--line); display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  h2 .h2-note { font-size: 11px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--ink-faint); }
+
+  .sync-banner { display: none; align-items: center; gap: 10px; background: var(--red-soft); border: 1px solid color-mix(in srgb, var(--red) 30%, var(--line)); color: var(--red); border-radius: 10px; padding: 10px 14px; font-size: 13px; font-weight: 600; margin-bottom: 22px; }
+  .sync-banner.show { display: flex; }
+
+  .save-indicator { font-size: 12px; color: var(--ink-faint); }
+  .save-indicator.saving { color: var(--blue); }
+  .save-indicator.saved { color: var(--green); }
+  .save-indicator.unsaved { color: var(--red); }
+
+  .btn { font: inherit; font-size: 13.5px; font-weight: 700; padding: 9px 16px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; }
+  .btn.primary { background: var(--blue); color: #fff; }
+  .btn.primary:hover, .btn.primary:focus-visible { background: color-mix(in srgb, var(--blue) 85%, black); }
+  .btn.small { font-size: 12.5px; padding: 6px 12px; }
+  .save-row { display: flex; align-items: center; gap: 10px; }
+
+  /* --- schedule rows --- */
+  .sched-list { display: flex; flex-direction: column; gap: 8px; }
+  .sched-row { display: flex; align-items: center; gap: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; box-shadow: var(--shadow); }
+  .sched-row.is-family { background: var(--blue-soft); border-color: color-mix(in srgb, var(--blue) 25%, var(--line)); }
+  .sched-date { flex: 0 0 150px; font-size: 13.5px; font-weight: 700; color: var(--ink); }
+  .sched-date .dow { display: block; font-size: 11px; font-weight: 600; color: var(--ink-faint); }
+  .sched-label { flex: 1 1 auto; font-size: 13.5px; color: var(--ink-soft); }
+  .event-pill { display: inline-flex; align-items: center; font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 9px; border-radius: 999px; background: var(--line); color: var(--ink-soft); }
+  .sched-row.is-family .event-pill { background: var(--blue); color: #fff; }
+  .sched-assignee select { font: inherit; font-size: 13.5px; font-weight: 700; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); min-width: 140px; }
+
+  @media (max-width: 560px) {
+    .sched-row { flex-wrap: wrap; }
+    .sched-date { flex-basis: 100%; }
+    .sched-assignee select { width: 100%; }
+  }
+
+  /* --- per-person tally chips --- */
+  .chip-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); box-shadow: var(--shadow); }
+  .chip .num { font-variant-numeric: tabular-nums; font-weight: 800; color: var(--ink); font-size: 13.5px; }
+
+  footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-faint); }
+</style>
+</head>
+<body>
+<div id="kcaa-gate" style="position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;">
+  <form id="kcaa-gate-form" style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 26px;box-shadow:var(--shadow);width:100%;max-width:320px;box-sizing:border-box;font-family:-apple-system,'Segoe UI',ui-sans-serif,system-ui,sans-serif;">
+    <p style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue);margin:0 0 8px;">KCAA Hub</p>
+    <h1 style="font-size:19px;font-weight:800;margin:0 0 16px;color:var(--ink);">Enter password</h1>
+    <input type="password" id="kcaa-gate-pw" autocomplete="current-password" placeholder="Password" style="width:100%;font:inherit;font-size:15px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);margin-bottom:12px;box-sizing:border-box;">
+    <button type="submit" style="width:100%;font:inherit;font-size:14px;font-weight:700;padding:10px 16px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;">Enter</button>
+    <p id="kcaa-gate-err" style="display:none;color:var(--red);font-size:13px;margin:12px 0 0;">Incorrect password &mdash; try again.</p>
+  </form>
+</div>
+<script src="gate.js"></script>
+
+
+<div class="page">
+  <a class="back-nav" href="index.html"><span class="arrow">&larr;</span> Back to Hub</a>
+
+  <p class="eyebrow">KCAA &middot; Hockey Program</p>
+  <h1>Coffee Pickup Schedule</h1>
+  <p class="lede">Who's picking up coffee for each session of the <a href="https://www.kcaa.ca/fs-2026-2027" target="_blank" rel="noopener">2026-2027 hockey schedule</a>, rotating evenly across 8 volunteers. Changes here save live for everyone who opens this page.</p>
+
+  <div class="callout">
+    <strong>Pickup location:</strong> Tim Hortons, 860 York Mills Rd, North York, ON M3B 1Y4 (our sponsor)<br>
+    <strong>Pickup time:</strong> 2:15 PM &mdash; before each session/Family Skate below.
+  </div>
+
+  <div class="map-embed">
+    <iframe src="https://www.google.com/maps?q=Tim+Hortons,860+York+Mills+Rd,North+York,ON+M3B+1Y4&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Map to Tim Hortons, 860 York Mills Rd, North York, ON M3B 1Y4"></iframe>
+    <a class="map-link" href="https://www.google.com/maps/search/?api=1&query=Tim+Hortons+860+York+Mills+Rd+North+York+ON+M3B+1Y4" target="_blank" rel="noopener">Open in Google Maps &rarr;</a>
+  </div>
+
+  <div class="sync-banner" id="syncBanner">&#9888; Live sync isn't available in this view, so changes on this page won't be saved. Reopen the tracker from its published link.</div>
+
+  <section class="block">
+    <h2>Who's up <span class="h2-note save-row"><button type="button" class="btn primary small" id="saveBtn">Save</button><span class="save-indicator" id="saveIndicator"></span></span></h2>
+    <div class="chip-row" id="tallyRow"></div>
+  </section>
+
+  <section class="block">
+    <h2>Season 1</h2>
+    <div class="sched-list" id="season1List"></div>
+  </section>
+
+  <section class="block">
+    <h2>Season 2</h2>
+    <div class="sched-list" id="season2List"></div>
+  </section>
+
+  <footer>KCAA internal &middot; coffee pickup schedule v1.0</footer>
+</div>
+
+<!--
+  ============================================================================
+  FIREBASE SETUP — same kcaa-hub project as the Outreach Tracker and Meeting
+  Minutes tools; this config is a public client identifier, not a secret.
+  Stored as a single document (coffee_pickup/schedule) since this is one
+  fixed list of dates, not a growing collection of records.
+  ============================================================================
+-->
+<script>
+(function () {
+  "use strict";
+
+  var firebaseConfig = {
+    apiKey: "AIzaSyCTI8_wse6mW5O5KVP362eNQFpHQRiz_64",
+    authDomain: "kcaa-hub.firebaseapp.com",
+    projectId: "kcaa-hub",
+    storageBucket: "kcaa-hub.firebasestorage.app",
+    messagingSenderId: "36937011424",
+    appId: "1:36937011424:web:825b1d1a1b23e82d514085"
+  };
+  var fsApi = null;
+  var firestoreDb = null;
+  var localMode = false;
+
+  var PEOPLE = ["Danny K", "Danny H", "Josh K", "Michelle C", "Joel C", "Caitlin K", "Ernie J", "Randy K"];
+
+  // Seed rotation: round-robin through PEOPLE across the 20 dates that need a
+  // pickup (19 sessions + 2 Family Skates; the 2027-03-14 Break is excluded
+  // entirely — no row for it). This is only the starting point; rows are
+  // edited in place afterward.
+  var SEED_ROWS = [
+    { date: "2026-10-11", season: 1, label: "Session 1", type: "session", assignee: "Danny K" },
+    { date: "2026-10-18", season: 1, label: "Session 2", type: "session", assignee: "Danny H" },
+    { date: "2026-10-25", season: 1, label: "Session 3", type: "session", assignee: "Josh K" },
+    { date: "2026-11-01", season: 1, label: "Session 4", type: "session", assignee: "Michelle C" },
+    { date: "2026-11-08", season: 1, label: "Session 5", type: "session", assignee: "Joel C" },
+    { date: "2026-11-15", season: 1, label: "Session 6", type: "session", assignee: "Caitlin K" },
+    { date: "2026-11-22", season: 1, label: "Session 7", type: "session", assignee: "Ernie J" },
+    { date: "2026-11-29", season: 1, label: "Session 8", type: "session", assignee: "Randy K" },
+    { date: "2026-12-06", season: 1, label: "Session 9", type: "session", assignee: "Danny K" },
+    { date: "2026-12-13", season: 1, label: "Family Skate", type: "family_skate", assignee: "Danny H" },
+    { date: "2027-01-10", season: 2, label: "Session 1", type: "session", assignee: "Josh K" },
+    { date: "2027-01-17", season: 2, label: "Session 2", type: "session", assignee: "Michelle C" },
+    { date: "2027-01-24", season: 2, label: "Session 3", type: "session", assignee: "Joel C" },
+    { date: "2027-01-31", season: 2, label: "Session 4", type: "session", assignee: "Caitlin K" },
+    { date: "2027-02-07", season: 2, label: "Session 5", type: "session", assignee: "Ernie J" },
+    { date: "2027-02-14", season: 2, label: "Family Skate", type: "family_skate", assignee: "Randy K" },
+    { date: "2027-02-21", season: 2, label: "Session 6", type: "session", assignee: "Danny K" },
+    { date: "2027-02-28", season: 2, label: "Session 7", type: "session", assignee: "Danny H" },
+    { date: "2027-03-07", season: 2, label: "Session 8", type: "session", assignee: "Josh K" },
+    { date: "2027-03-21", season: 2, label: "Session 9", type: "session", assignee: "Michelle C" }
+  ];
+
+  var rows = SEED_ROWS.map(function (r) { return Object.assign({}, r); });
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function fmtDate(iso) {
+    var d = new Date(iso + "T00:00:00");
+    var dow = d.toLocaleDateString(undefined, { weekday: "short" });
+    var md = d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+    return '<span class="dow">' + esc(dow) + "</span>" + esc(md);
+  }
+
+  function optionsHtml(selected) {
+    return PEOPLE.map(function (p) {
+      return '<option value="' + esc(p) + '"' + (p === selected ? " selected" : "") + ">" + esc(p) + "</option>";
+    }).join("");
+  }
+
+  function render() {
+    renderList("season1List", 1);
+    renderList("season2List", 2);
+    renderTally();
+  }
+
+  function renderList(elId, season) {
+    var el = document.getElementById(elId);
+    el.innerHTML = rows.filter(function (r) { return r.season === season; }).map(function (r) {
+      return (
+        '<div class="sched-row' + (r.type === "family_skate" ? " is-family" : "") + '" data-date="' + r.date + '">' +
+          '<div class="sched-date">' + fmtDate(r.date) + "</div>" +
+          '<div class="sched-label"><span class="event-pill">' + esc(r.label) + "</span></div>" +
+          '<div class="sched-assignee"><select data-date="' + r.date + '">' + optionsHtml(r.assignee) + "</select></div>" +
+        "</div>"
+      );
+    }).join("");
+    el.querySelectorAll("select").forEach(function (sel) {
+      sel.addEventListener("change", function () {
+        var row = rows.find(function (r) { return r.date === sel.dataset.date; });
+        if (row) row.assignee = sel.value;
+        renderTally();
+        setSaveIndicator("unsaved");
+      });
+    });
+  }
+
+  function renderTally() {
+    var counts = {};
+    PEOPLE.forEach(function (p) { counts[p] = 0; });
+    rows.forEach(function (r) { if (counts[r.assignee] !== undefined) counts[r.assignee]++; });
+    document.getElementById("tallyRow").innerHTML = PEOPLE.map(function (p) {
+      return '<span class="chip">' + esc(p) + ' <span class="num">' + counts[p] + "</span></span>";
+    }).join("");
+  }
+
+  // ---- persistence -----------------------------------------------------
+  function setSaveIndicator(state) {
+    var el = document.getElementById("saveIndicator");
+    el.classList.remove("saving", "saved", "unsaved");
+    if (state === "saving") { el.textContent = "Saving…"; el.classList.add("saving"); }
+    else if (state === "saved") { el.textContent = "Saved"; el.classList.add("saved"); }
+    else if (state === "unsaved") { el.textContent = "Unsaved changes"; el.classList.add("unsaved"); }
+    else el.textContent = "";
+  }
+
+  document.getElementById("saveBtn").addEventListener("click", function () {
+    setSaveIndicator("saving");
+    doSave();
+  });
+
+  function doSave() {
+    if (localMode || !firestoreDb) {
+      setSaveIndicator("saved");
+      return;
+    }
+    fsApi.setDoc(fsApi.doc(firestoreDb, "coffee_pickup", "schedule"), { rows: rows, updatedAt: new Date().toISOString() })
+      .then(function () { setSaveIndicator("saved"); })
+      .catch(function (e) { console.error("save failed", e); });
+  }
+
+  // ---- boot --------------------------------------------------------------
+  render(); // paint the seed data immediately
+
+  function goLocalMode(reason) {
+    if (reason) console.error("coffee pickup schedule: falling back to local mode —", reason);
+    localMode = true;
+    document.getElementById("syncBanner").classList.add("show");
+  }
+
+  (function initFirebase() {
+    if (!firebaseConfig.apiKey || firebaseConfig.apiKey.indexOf("REPLACE_WITH") === 0) {
+      goLocalMode("firebaseConfig still has placeholder values");
+      return;
+    }
+    Promise.all([
+      import("https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js")
+    ]).then(function (mods) {
+      var appApi = mods[0], firestoreApi = mods[1];
+      fsApi = firestoreApi;
+
+      var app = appApi.initializeApp(firebaseConfig);
+      firestoreDb = firestoreApi.getFirestore(app);
+      var docRef = firestoreApi.doc(firestoreDb, "coffee_pickup", "schedule");
+
+      firestoreApi.getDoc(docRef).then(function (snap) {
+        if (!snap.exists()) {
+          // First time this tool has been opened — seed the shared doc.
+          return fsApi.setDoc(docRef, { rows: rows, updatedAt: new Date().toISOString() });
+        }
+      }).catch(function (e) { console.error("seed check failed", e); });
+
+      firestoreApi.onSnapshot(
+        docRef,
+        function (snap) {
+          var data = snap.data();
+          if (data && Array.isArray(data.rows) && data.rows.length) {
+            rows = data.rows;
+            render();
+          }
+        },
+        function (err) { goLocalMode("onSnapshot error: " + err); }
+      );
+    }).catch(function (e) {
+      goLocalMode("could not load Firebase SDK: " + e);
+    });
+  })();
+})();
+</script>
+
+</body>
+</html>
