@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KCAA Social Media Posts</title>
+<meta name="description" content="KCAA social media hub: ready-to-publish posts and the posting calendar.">
+</head>
+<body>
+<div id="kcaa-gate" style="position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;">
+  <form id="kcaa-gate-form" style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 26px;box-shadow:var(--shadow);width:100%;max-width:320px;box-sizing:border-box;font-family:-apple-system,'Segoe UI',ui-sans-serif,system-ui,sans-serif;">
+    <p style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue);margin:0 0 8px;">KCAA Hub</p>
+    <h1 style="font-size:19px;font-weight:800;margin:0 0 16px;color:var(--ink);">Enter password</h1>
+    <input type="password" id="kcaa-gate-pw" autocomplete="current-password" placeholder="Password" style="width:100%;font:inherit;font-size:15px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);margin-bottom:12px;box-sizing:border-box;">
+    <button type="submit" style="width:100%;font:inherit;font-size:14px;font-weight:700;padding:10px 16px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;">Enter</button>
+    <p id="kcaa-gate-err" style="display:none;color:var(--red);font-size:13px;margin:12px 0 0;">Incorrect password &mdash; try again.</p>
+  </form>
+</div>
+<script src="gate.js"></script>
+
+<style>
+  :root {
+    --bg: #f3f5f7; --surface: #ffffff; --ink: #0a0a0a; --ink-soft: #565f68; --ink-faint: #889198;
+    --line: #dde2e6; --red: #d01048; --red-soft: #fbe6ec; --blue: #3090d8; --blue-soft: #e6f2fb;
+    --shadow: 0 1px 2px rgba(10,10,10,0.04), 0 8px 24px -14px rgba(10,10,10,0.16);
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    --bg: #101214; --surface: #1a1c1f; --ink: #f1f2f3; --ink-soft: #b4bac0; --ink-faint: #7d848b;
+    --line: #2c2f33; --red: #ef4778; --red-soft: #331a22; --blue: #5cabe6; --blue-soft: #17283a;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 30px -14px rgba(0,0,0,0.6);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101214; --surface: #1a1c1f; --ink: #f1f2f3; --ink-soft: #b4bac0; --ink-faint: #7d848b;
+      --line: #2c2f33; --red: #ef4778; --red-soft: #331a22; --blue: #5cabe6; --blue-soft: #17283a;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 30px -14px rgba(0,0,0,0.6);
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, "Segoe UI", ui-sans-serif, system-ui, sans-serif; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  .page { max-width: 900px; margin: 0 auto; padding: 28px 18px 80px; }
+  @media (min-width: 600px) { .page { padding: 32px 24px 100px; } }
+
+  .back-nav { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--ink-soft); text-decoration: none; padding: 10px 4px; margin-bottom: 16px; }
+  .back-nav:hover, .back-nav:focus-visible { color: var(--blue); }
+  .back-nav .arrow { font-size: 15px; }
+
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue); margin: 0 0 10px; }
+  h1 { font-size: clamp(30px, 8vw, 42px); font-weight: 800; letter-spacing: -0.01em; margin: 0 0 12px; text-wrap: balance; }
+  .lede { font-size: 15.5px; color: var(--ink-soft); max-width: 60ch; margin: 0 0 32px; }
+  @media (min-width: 600px) { .lede { font-size: 16px; margin-bottom: 40px; } }
+
+  section.block { margin-bottom: 36px; }
+  h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-faint); margin: 0 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+
+  .doc-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 480px) { .doc-grid { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; } }
+
+  .doc-card { display: block; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); text-decoration: none; color: inherit; transition: transform 0.12s ease, box-shadow 0.12s ease; -webkit-tap-highlight-color: transparent; }
+  .doc-card:hover, .doc-card:focus-visible { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(10,10,10,0.06), 0 14px 28px -14px rgba(10,10,10,0.22); }
+  .doc-card:active { transform: translateY(0); }
+
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+  .card-icon { font-size: 30px; line-height: 1; }
+  .doc-card .status { display: inline-block; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+  .doc-card .status.live { background: var(--blue-soft); color: var(--blue); }
+  .doc-card h3 { font-size: 16.5px; font-weight: 800; margin: 0 0 6px; }
+  .doc-card p { font-size: 13px; color: var(--ink-soft); margin: 0; }
+  .doc-card .arrow { display: inline-block; margin-top: 14px; font-size: 12.5px; font-weight: 700; color: var(--blue); }
+
+  .doc-card.future { opacity: 0.6; cursor: default; }
+  .doc-card.future:hover, .doc-card.future:focus-visible { transform: none; box-shadow: var(--shadow); }
+  .doc-card.future .status { background: var(--line); color: var(--ink-faint); }
+  .doc-card.future .card-icon { filter: grayscale(0.4); }
+
+  footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-faint); }
+</style>
+
+<div class="page">
+  <a class="back-nav" href="index.html"><span class="arrow">&larr;</span> Back to Hub</a>
+
+  <p class="eyebrow">KCAA &middot; Social Media</p>
+  <h1>Social Media Posts</h1>
+  <p class="lede">Ready-to-publish posts, and soon the posting calendar that pre-schedules when each one goes out &mdash; all social content lives here.</p>
+
+  <section class="block">
+    <div class="doc-grid">
+      <a class="doc-card" href="instagram-recruitment-posts.html">
+        <div class="card-top"><span class="card-icon">📸</span><span class="status live">Ready to post</span></div>
+        <h3>Recruitment Posts &mdash; Instagram</h3>
+        <p>3 ready-to-publish posts recruiting student volunteers &mdash; image and caption for each. Opens phone-friendly for a quick save &amp; copy-paste.</p>
+        <span class="arrow">Open &rarr;</span>
+      </a>
+      <div class="doc-card future">
+        <div class="card-top"><span class="card-icon">📅</span><span class="status">Planned</span></div>
+        <h3>Posting Calendar</h3>
+        <p>Pre-scheduled release dates for upcoming posts. Not built yet.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>KCAA internal &middot; social media v1.0</footer>
+</div>
+</body>
+</html>
