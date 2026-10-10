@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Check-In QR Poster</title>
+<meta name="description" content="Printable rink poster with the QR code parents scan to check their child in each week.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=IBM+Plex+Sans:wght@400;600;700&family=IBM+Plex+Sans+KR:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Brand guide tokens (sections 05/06/11). The poster itself is a printed
+     paper piece, so it stays on the light palette in every theme. */
+  :root {
+    --bg: #f3f5f7; --surface: #ffffff; --ink: #0a0a0a; --ink-soft: #565f68; --ink-faint: #889198;
+    --line: #dde2e6; --red: #d01048; --red-soft: #fbe6ec; --blue: #3090d8; --blue-soft: #e6f2fb;
+    --paper: #ffffff; --black: #000000;
+    --shadow: 0 1px 2px rgba(10,10,10,0.04), 0 8px 24px -14px rgba(10,10,10,0.16);
+    --display: "Poppins", -apple-system, "Segoe UI", sans-serif;
+    --body: "IBM Plex Sans", "IBM Plex Sans KR", -apple-system, "Segoe UI", sans-serif;
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] { --bg: #101214; --ink-soft: #b4bac0; --line: #2c2f33; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #101214; --ink-soft: #b4bac0; --line: #2c2f33; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, "Segoe UI", ui-sans-serif, system-ui, sans-serif; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+
+  .toolbar { max-width: 8.5in; margin: 0 auto; padding: 20px 16px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .back-nav { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--ink-soft); text-decoration: none; padding: 10px 4px; }
+  .back-nav:hover, .back-nav:focus-visible { color: var(--blue); }
+  .btn { font: inherit; font-size: 13.5px; font-weight: 700; padding: 9px 16px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; background: var(--blue); color: #fff; }
+  .btn:hover, .btn:focus-visible { background: color-mix(in srgb, var(--blue) 85%, black); }
+
+  /* ---- the poster: US Letter, 8.5 x 11 ---- */
+  .sheet-wrap { padding: 0 16px 60px; }
+  .sheet {
+    width: 8.5in; height: 11in; margin: 0 auto; background: var(--paper); color: var(--black);
+    box-shadow: var(--shadow); position: relative; overflow: hidden;
+    padding: 0.6in 0.65in 0.5in; display: flex; flex-direction: column;
+    font-family: var(--body);
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  /* Fit the sheet to small screens without reflowing it. */
+  @media screen and (max-width: 860px) {
+    .sheet-wrap { overflow: hidden; }
+    .sheet { transform-origin: top left; }
+  }
+
+  /* Logo: full lockup, well above the 160px floor; clear space = 3.74% of its width. */
+  .logo { width: 3.1in; height: auto; display: block; margin: 0.116in 0 0.26in; }
+
+  .pill { display: inline-block; align-self: flex-start; background: var(--red); color: #fff; font-family: var(--body); font-size: 12pt; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 14px; border-radius: 999px; margin-bottom: 14px; }
+  .headline { font-family: var(--display); font-weight: 800; font-size: 54pt; line-height: 1.02; letter-spacing: -0.015em; margin: 0 0 12px; }
+  .lede { font-size: 16pt; line-height: 1.35; color: #2b2f33; margin: 0; max-width: 6.2in; }
+  .lede-kr { font-family: "IBM Plex Sans KR", var(--body); font-size: 13.5pt; color: #565f68; margin: 6px 0 0; }
+
+  .qr-row { flex: 1 1 auto; display: flex; align-items: center; gap: 0.45in; margin: 0.22in 0 0.2in; }
+  .qr-frame { flex: 0 0 auto; width: 3.9in; padding: 0.16in; border: 6px solid var(--blue); border-radius: 22px; background: #fff; }
+  .qr-frame svg { display: block; width: 100%; height: auto; }
+  .qr-url { text-align: center; font-size: 9.5pt; color: #565f68; margin-top: 6px; word-break: break-all; }
+
+  .steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.24in; }
+  .steps li { display: flex; gap: 14px; align-items: flex-start; }
+  .steps .n { flex: 0 0 auto; width: 38px; height: 38px; border-radius: 50%; background: var(--black); color: #fff; font-family: var(--display); font-weight: 800; font-size: 17pt; display: flex; align-items: center; justify-content: center; }
+  .steps .t { font-family: var(--display); font-weight: 700; font-size: 16pt; line-height: 1.2; }
+  .steps .s { font-size: 11pt; color: #565f68; line-height: 1.35; margin-top: 2px; }
+  .steps .kr { font-family: "IBM Plex Sans KR", var(--body); }
+
+  /* CTA bar — same closer as the social templates (brand guide §09). */
+  .cta { background: #fff; border: 2px solid #e4e7ea; border-radius: 18px; padding: 16px 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .cta .l1 { font-weight: 700; font-size: 13pt; color: var(--black); }
+  .cta .l2 { font-size: 10.5pt; color: #565f68; }
+  .cta .email { font-family: var(--display); font-weight: 700; font-size: 14pt; color: var(--red); white-space: nowrap; }
+
+  @page { size: letter portrait; margin: 0; }
+  @media print {
+    body { background: #fff; }
+    .toolbar { display: none; }
+    .sheet-wrap { padding: 0; }
+    .sheet { box-shadow: none; margin: 0; transform: none !important; }
+  }
+</style>
+</head>
+<body>
+<div id="kcaa-gate" style="position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;">
+  <form id="kcaa-gate-form" style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 26px;box-shadow:var(--shadow);width:100%;max-width:320px;box-sizing:border-box;font-family:-apple-system,'Segoe UI',ui-sans-serif,system-ui,sans-serif;">
+    <p style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue);margin:0 0 8px;">KCAA Hub</p>
+    <h1 style="font-size:19px;font-weight:800;margin:0 0 16px;color:var(--ink);">Enter password</h1>
+    <input type="password" id="kcaa-gate-pw" autocomplete="current-password" placeholder="Password" style="width:100%;font:inherit;font-size:15px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);margin-bottom:12px;box-sizing:border-box;">
+    <button type="submit" style="width:100%;font:inherit;font-size:14px;font-weight:700;padding:10px 16px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;">Enter</button>
+    <p id="kcaa-gate-err" style="display:none;color:var(--red);font-size:13px;margin:12px 0 0;">Incorrect password &mdash; try again.</p>
+  </form>
+</div>
+<script src="gate.js"></script>
+
+<div class="toolbar">
+  <a class="back-nav" href="attendance-tracker.html"><span class="arrow">&larr;</span> Back to Attendance Tracker</a>
+  <button type="button" class="btn" onclick="window.print()">Print poster</button>
+</div>
+
+<div class="sheet-wrap" id="sheetWrap">
+  <div class="sheet" id="sheet">
+    <img class="logo" src="Assets/FINAL-KCAA-CORE-Logo-RGB.png" alt="KCAA — Korean Canadian Athletic Association">
+
+    <span class="pill">Hockey &middot; 2026&ndash;2027</span>
+    <h1 class="headline">Scan to<br>check in</h1>
+    <p class="lede">Learn 2 Skate &amp; Future Stars &mdash; check your child in every week when you arrive at the rink.</p>
+    <p class="lede-kr">링크장에 도착하시면 QR 코드를 스캔해 자녀를 체크인해 주세요.</p>
+
+    <div class="qr-row">
+      <div>
+        <div class="qr-frame" id="qr"></div>
+        <div class="qr-url" id="qrUrl"></div>
+      </div>
+      <ol class="steps">
+        <li><span class="n">1</span><div><div class="t">Scan the code</div><div class="s">Open your phone camera and point it here.<br><span class="kr">휴대폰 카메라로 스캔하세요.</span></div></div></li>
+        <li><span class="n">2</span><div><div class="t">Type your child's full name</div><div class="s">The name you registered with.<br><span class="kr">등록하신 자녀의 이름을 입력하세요.</span></div></div></li>
+        <li><span class="n">3</span><div><div class="t">Tap Check in</div><div class="s">Siblings? Tap &ldquo;Check in another child.&rdquo;<br><span class="kr">형제자매도 이어서 체크인할 수 있습니다.</span></div></div></li>
+      </ol>
+    </div>
+
+    <div class="cta">
+      <div>
+        <div class="l1">Not on the list? Check in anyway.</div>
+        <div class="l2">Tap &ldquo;My child isn't listed&rdquo; and a coach will find you at the rink.</div>
+      </div>
+      <div class="email">info@kcaa.ca</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+(function () {
+  "use strict";
+  // One permanent URL for the whole season — checkin.html works out the week itself.
+  var CHECKIN_URL = "https://kcaa-admin.github.io/hub/checkin.html";
+
+  var qr = qrcode(0, "Q"); // Q = 25% error correction, survives a scuffed/laminated print
+  qr.addData(CHECKIN_URL);
+  qr.make();
+  document.getElementById("qr").innerHTML = qr.createSvgTag({ cellSize: 8, margin: 0, scalable: true });
+  document.getElementById("qrUrl").textContent = CHECKIN_URL.replace(/^https:\/\//, "");
+
+  // Scale the fixed-size sheet down to fit narrow screens (print is unaffected).
+  function fit() {
+    var wrap = document.getElementById("sheetWrap"), sheet = document.getElementById("sheet");
+    var avail = wrap.clientWidth - 32, full = sheet.offsetWidth;
+    if (avail > 0 && avail < full) {
+      var k = avail / full;
+      sheet.style.transform = "scale(" + k + ")";
+      wrap.style.height = (sheet.offsetHeight * k + 60) + "px";
+    } else {
+      sheet.style.transform = "";
+      wrap.style.height = "";
+    }
+  }
+  window.addEventListener("resize", fit);
+  window.addEventListener("load", fit);
+  fit();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>KCAA Hockey Check-In</title>
+<meta name="description" content="Check your child in for this week's KCAA Learn 2 Skate or Future Stars session.">
+<style>
+  :root {
+    --bg: #f3f5f7; --surface: #ffffff; --ink: #0a0a0a; --ink-soft: #565f68; --ink-faint: #889198;
+    --line: #dde2e6; --red: #d01048; --red-soft: #fbe6ec; --blue: #3090d8; --blue-soft: #e6f2fb;
+    --green: #2f8a4e; --green-soft: #e6f5ea; --amber: #a86a00; --amber-soft: #fdf3e0;
+    --shadow: 0 1px 2px rgba(10,10,10,0.04), 0 8px 24px -14px rgba(10,10,10,0.16);
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    --bg: #101214; --surface: #1a1c1f; --ink: #f1f2f3; --ink-soft: #b4bac0; --ink-faint: #7d848b;
+    --line: #2c2f33; --red: #ef4778; --red-soft: #331a22; --blue: #5cabe6; --blue-soft: #17283a;
+    --green: #43b06a; --green-soft: #17301f; --amber: #e0a43a; --amber-soft: #33270f;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 30px -14px rgba(0,0,0,0.6);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101214; --surface: #1a1c1f; --ink: #f1f2f3; --ink-soft: #b4bac0; --ink-faint: #7d848b;
+      --line: #2c2f33; --red: #ef4778; --red-soft: #331a22; --blue: #5cabe6; --blue-soft: #17283a;
+      --green: #43b06a; --green-soft: #17301f; --amber: #e0a43a; --amber-soft: #33270f;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 30px -14px rgba(0,0,0,0.6);
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, "Segoe UI", ui-sans-serif, system-ui, sans-serif; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  .page { max-width: 480px; margin: 0 auto; padding: 28px 16px 60px; }
+
+  /* Logo PNG has a white ground, so it sits on a white plate (with the brand's clear space) in dark mode too. */
+  .logo { display: block; width: 190px; height: auto; background: #fff; padding: 7px; border-radius: 8px; margin: 0 0 22px -7px; }
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue); margin: 0 0 8px; }
+  h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 6px; }
+  .session-line { font-size: 15px; color: var(--ink-soft); margin: 0 0 22px; }
+  .session-line strong { color: var(--ink); }
+
+  .test-banner { display: none; background: var(--amber-soft); color: var(--amber); border: 1px solid color-mix(in srgb, var(--amber) 35%, var(--line)); border-radius: 10px; padding: 10px 14px; font-size: 13px; font-weight: 700; margin-bottom: 18px; }
+  .test-banner.show { display: block; }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px 20px; box-shadow: var(--shadow); }
+  .card + .card { margin-top: 14px; }
+  .card h2 { font-size: 19px; font-weight: 800; margin: 0 0 6px; }
+  .card p { font-size: 14.5px; color: var(--ink-soft); margin: 0 0 16px; }
+
+  label { display: block; font-size: 13px; font-weight: 700; color: var(--ink-soft); margin: 0 0 6px; }
+  input[type="text"], input[type="tel"], select {
+    width: 100%; font: inherit; font-size: 17px; padding: 13px 14px; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink); margin-bottom: 14px;
+  }
+  input:focus, select:focus { outline: 2px solid var(--blue); outline-offset: 1px; }
+
+  .btn { display: block; width: 100%; font: inherit; font-size: 16px; font-weight: 800; padding: 14px 16px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; text-align: center; }
+  .btn.primary { background: var(--blue); color: #fff; }
+  .btn.primary:hover, .btn.primary:focus-visible { background: color-mix(in srgb, var(--blue) 85%, black); }
+  .btn.primary:disabled { opacity: 0.6; cursor: wait; }
+  .btn.ghost { background: transparent; color: var(--blue); border-color: var(--line); margin-top: 10px; }
+  .btn.ghost:hover, .btn.ghost:focus-visible { background: var(--blue-soft); }
+
+  .msg-err { display: none; color: var(--red); font-size: 13.5px; font-weight: 600; margin: -4px 0 12px; }
+  .msg-err.show { display: block; }
+
+  .result { text-align: center; padding: 30px 20px; }
+  .result .big { font-size: 46px; line-height: 1; margin-bottom: 12px; }
+  .result h2 { font-size: 22px; }
+  .result .kid { font-size: 20px; font-weight: 800; color: var(--ink); margin: 4px 0 2px; }
+  .result .meta { font-size: 14px; color: var(--ink-soft); margin: 0 0 20px; }
+  .result.ok { background: var(--green-soft); border-color: color-mix(in srgb, var(--green) 30%, var(--line)); }
+  .result.ok h2 { color: var(--green); }
+  .result.warn { background: var(--amber-soft); border-color: color-mix(in srgb, var(--amber) 30%, var(--line)); }
+  .result.warn h2 { color: var(--amber); }
+
+  .hidden { display: none !important; }
+  .fine { font-size: 12px; color: var(--ink-faint); text-align: center; margin-top: 26px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <img class="logo" src="Assets/FINAL-KCAA-CORE-Logo-RGB.png" alt="KCAA — Korean Canadian Athletic Association">
+  <p class="eyebrow">Hockey &middot; Learn 2 Skate &amp; Future Stars</p>
+  <h1>Check-In</h1>
+  <p class="session-line" id="sessionLine">Loading&hellip;</p>
+  <div class="test-banner" id="testBanner">TEST MODE &mdash; check-ins here go to a practice session, not a real one.</div>
+
+  <!-- Step 1: type the child's name -->
+  <form class="card" id="nameForm" autocomplete="off">
+    <h2>Who's skating today?</h2>
+    <p>Type your child's full name, the way you registered them.</p>
+    <label for="childName">Child's full name</label>
+    <input type="text" id="childName" placeholder="e.g. Ernie Ji" autocapitalize="words" spellcheck="false" required>
+    <div class="msg-err" id="nameErr"></div>
+    <button type="submit" class="btn primary" id="nameBtn">Check in</button>
+  </form>
+
+  <!-- Step 2a: name not found -->
+  <div class="card result warn hidden" id="notFound">
+    <div class="big">&#128269;</div>
+    <h2>We couldn't find that name</h2>
+    <p class="meta">No match for <strong id="notFoundName"></strong> on this season's roster. Check the spelling &mdash; use the name you registered with.</p>
+    <button type="button" class="btn primary" id="tryAgainBtn">Try again</button>
+    <button type="button" class="btn ghost" id="toWalkinBtn">My child isn't listed</button>
+  </div>
+
+  <!-- Step 2b: walk-in form -->
+  <form class="card hidden" id="walkinForm" autocomplete="off">
+    <h2>Child not listed</h2>
+    <p>No problem &mdash; let us know who's here and a coach will follow up with you at the rink.</p>
+    <label for="wkChild">Child's full name</label>
+    <input type="text" id="wkChild" autocapitalize="words" required maxlength="80">
+    <label for="wkParent">Your name</label>
+    <input type="text" id="wkParent" autocapitalize="words" autocomplete="name" required maxlength="80">
+    <label for="wkPhone">Your phone number</label>
+    <input type="tel" id="wkPhone" autocomplete="tel" required maxlength="30">
+    <label for="wkProgram">Program</label>
+    <select id="wkProgram">
+      <option value="Not sure">Not sure</option>
+      <option value="Learn 2 Skate">Learn 2 Skate</option>
+      <option value="Future Stars">Future Stars</option>
+    </select>
+    <div class="msg-err" id="wkErr"></div>
+    <button type="submit" class="btn primary" id="wkBtn">Check in</button>
+    <button type="button" class="btn ghost" id="wkBackBtn">Back</button>
+  </form>
+
+  <!-- Step 3: done -->
+  <div class="card result ok hidden" id="done">
+    <div class="big">&#9989;</div>
+    <h2 id="doneTitle">Checked in!</h2>
+    <p class="kid" id="doneKid"></p>
+    <p class="meta" id="doneMeta"></p>
+    <button type="button" class="btn primary" id="anotherBtn">Check in another child</button>
+  </div>
+
+  <!-- No session today -->
+  <div class="card result hidden" id="closed">
+    <div class="big">&#127954;</div>
+    <h2>No session today</h2>
+    <p class="meta" id="closedMeta"></p>
+  </div>
+
+  <p class="fine">Korean Canadian Athletic Association &middot; kcaa.ca</p>
+</div>
+
+<!--
+  ============================================================================
+  Public check-in page (no Hub password — parents use it from the rink QR code).
+  The roster is NOT in this file. Parents type a full name; we turn it into a
+  key ("Zoe Yoo" -> "zoe-yoo") and look up exactly that one Firestore document
+  (checkin_roster/{key}). Firestore rules allow single-document gets but deny
+  listing, so the roster can't be browsed from here. See attendance-tracker.html
+  for the board-side view and the rules in SETUP-GUIDE.md.
+  ============================================================================
+-->
+<script>
+(function () {
+  "use strict";
+
+  var firebaseConfig = {
+    apiKey: "AIzaSyCTI8_wse6mW5O5KVP362eNQFpHQRiz_64",
+    authDomain: "kcaa-hub.firebaseapp.com",
+    projectId: "kcaa-hub",
+    storageBucket: "kcaa-hub.firebasestorage.app",
+    messagingSenderId: "36937011424",
+    appId: "1:36937011424:web:825b1d1a1b23e82d514085"
+  };
+
+  // Same 2026-2027 calendar as coffee-pickup-schedule.html. Keep in sync with
+  // attendance-tracker.html and the validSession() list in the Firestore rules.
+  var SESSIONS = [
+    { date: "2026-10-11", season: 1, label: "Session 1" },
+    { date: "2026-10-18", season: 1, label: "Session 2" },
+    { date: "2026-10-25", season: 1, label: "Session 3" },
+    { date: "2026-11-01", season: 1, label: "Session 4" },
+    { date: "2026-11-08", season: 1, label: "Session 5" },
+    { date: "2026-11-15", season: 1, label: "Session 6" },
+    { date: "2026-11-22", season: 1, label: "Session 7" },
+    { date: "2026-11-29", season: 1, label: "Session 8" },
+    { date: "2026-12-06", season: 1, label: "Session 9" },
+    { date: "2026-12-13", season: 1, label: "Family Skate" },
+    { date: "2027-01-10", season: 2, label: "Session 1" },
+    { date: "2027-01-17", season: 2, label: "Session 2" },
+    { date: "2027-01-24", season: 2, label: "Session 3" },
+    { date: "2027-01-31", season: 2, label: "Session 4" },
+    { date: "2027-02-07", season: 2, label: "Session 5" },
+    { date: "2027-02-14", season: 2, label: "Family Skate" },
+    { date: "2027-02-21", season: 2, label: "Session 6" },
+    { date: "2027-02-28", season: 2, label: "Session 7" },
+    { date: "2027-03-07", season: 2, label: "Session 8" },
+    { date: "2027-03-21", season: 2, label: "Session 9" }
+  ];
+  var TEST_SESSION = { date: "test", season: 0, label: "Test session" };
+
+  function $(id) { return document.getElementById(id); }
+  function show(id) { ["nameForm", "notFound", "walkinForm", "done", "closed"].forEach(function (s) { $(s).classList.toggle("hidden", s !== id); }); }
+
+  function todayToronto() {
+    // en-CA formats as YYYY-MM-DD
+    return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  }
+  function fmtDate(iso) {
+    return new Date(iso + "T12:00:00").toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+  }
+  function fmtTime(d) {
+    return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  }
+  // "  Zoë   O'Yoo " -> "zoe-oyoo". Must match nameKey() in attendance-tracker.html.
+  function nameKey(s) {
+    return String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "")
+      .toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/[\s-]+/g, " ").trim().replace(/ /g, "-");
+  }
+
+  // ---- which session is this? ------------------------------------------
+  var isTest = /[?&]test=1\b/.test(location.search);
+  var today = todayToronto();
+  var session = isTest ? TEST_SESSION : SESSIONS.find(function (s) { return s.date === today; });
+
+  if (isTest) $("testBanner").classList.add("show");
+
+  if (!session) {
+    var next = SESSIONS.find(function (s) { return s.date > today; });
+    $("sessionLine").innerHTML = "2026&ndash;2027 season";
+    $("closedMeta").textContent = next
+      ? "Check-in opens on session day. Next up: " + (next.label === "Family Skate" ? "Family Skate" : "Season " + next.season + " " + next.label) + ", " + fmtDate(next.date) + "."
+      : "The 2026–2027 season is over. Thanks for skating with us!";
+    show("closed");
+    return;
+  }
+
+  $("sessionLine").innerHTML = isTest
+    ? "<strong>Test session</strong>"
+    : "<strong>" + (session.label === "Family Skate" ? "Family Skate" : "Season " + session.season + " &middot; " + session.label) + "</strong> &middot; " + fmtDate(session.date);
+
+  // ---- Firebase --------------------------------------------------------
+  var fs = null, db = null;
+  var ready = Promise.all([
+    import("https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js"),
+    import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js")
+  ]).then(function (mods) {
+    fs = mods[1];
+    db = fs.getFirestore(mods[0].initializeApp(firebaseConfig));
+  });
+
+  function friendlyError(e) {
+    console.error(e);
+    return "Something went wrong — please check your connection and try again, or tell a coach.";
+  }
+
+  // ---- step 1: look up the name ----------------------------------------
+  $("nameForm").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var typed = $("childName").value.trim();
+    var key = nameKey(typed);
+    $("nameErr").classList.remove("show");
+    if (key.indexOf("-") < 0) {
+      $("nameErr").textContent = "Please enter first and last name.";
+      $("nameErr").classList.add("show");
+      return;
+    }
+    $("nameBtn").disabled = true;
+    $("nameBtn").textContent = "Checking…";
+
+    // Try the name as typed, then reversed ("Yoo Zoe") in case of family-name-first.
+    var parts = key.split("-");
+    var keys = [key];
+    if (parts.length === 2) keys.push(parts[1] + "-" + parts[0]);
+
+    ready.then(function () { return findRoster(keys); }).then(function (hit) {
+      if (!hit) {
+        $("notFoundName").textContent = typed;
+        show("notFound");
+        return;
+      }
+      return checkIn(hit.key, hit.data);
+    }).catch(function (e) {
+      $("nameErr").textContent = friendlyError(e);
+      $("nameErr").classList.add("show");
+    }).then(function () {
+      $("nameBtn").disabled = false;
+      $("nameBtn").textContent = "Check in";
+    });
+  });
+
+  function findRoster(keys) {
+    if (!keys.length) return Promise.resolve(null);
+    var key = keys[0];
+    return fs.getDoc(fs.doc(db, "checkin_roster", key)).then(function (snap) {
+      if (snap.exists()) return { key: key, data: snap.data() };
+      return findRoster(keys.slice(1));
+    });
+  }
+
+  function checkIn(key, kid) {
+    var ref = fs.doc(db, "checkins", session.date + "__" + key);
+    return fs.getDoc(ref).then(function (snap) {
+      if (snap.exists()) {
+        var at = snap.data().checkedInAt;
+        showDone(kid, "Already checked in", at && at.toDate ? "Checked in at " + fmtTime(at.toDate()) + "." : "");
+        return;
+      }
+      return fs.setDoc(ref, {
+        key: key,
+        sessionDate: session.date,
+        method: "qr",
+        checkedInAt: fs.serverTimestamp()
+      }).then(function () {
+        showDone(kid, "Checked in!", kid.program + " · " + fmtTime(new Date()));
+      });
+    });
+  }
+
+  function showDone(kid, title, meta) {
+    $("doneTitle").textContent = title;
+    $("doneKid").textContent = kid.name;
+    $("doneMeta").textContent = meta;
+    show("done");
+  }
+
+  $("tryAgainBtn").addEventListener("click", function () {
+    show("nameForm");
+    $("childName").focus();
+    $("childName").select();
+  });
+
+  // ---- step 2b: walk-in ------------------------------------------------
+  $("toWalkinBtn").addEventListener("click", function () {
+    $("wkChild").value = $("childName").value.trim();
+    $("wkErr").classList.remove("show");
+    show("walkinForm");
+    $("wkParent").focus();
+  });
+  $("wkBackBtn").addEventListener("click", function () { show("nameForm"); });
+
+  $("walkinForm").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var child = $("wkChild").value.trim(), parent = $("wkParent").value.trim(), phone = $("wkPhone").value.trim();
+    if (child.length < 2 || parent.length < 2 || phone.length < 7) {
+      $("wkErr").textContent = "Please fill in all fields.";
+      $("wkErr").classList.add("show");
+      return;
+    }
+    $("wkBtn").disabled = true;
+    $("wkBtn").textContent = "Saving…";
+    ready.then(function () {
+      return fs.addDoc(fs.collection(db, "checkin_walkins"), {
+        childName: child,
+        parentName: parent,
+        phone: phone,
+        program: $("wkProgram").value,
+        sessionDate: session.date,
+        createdAt: fs.serverTimestamp()
+      });
+    }).then(function () {
+      showDone({ name: child }, "You're checked in!", "A coach will find you at the rink to sort out registration.");
+      $("walkinForm").reset();
+    }).catch(function (e) {
+      $("wkErr").textContent = friendlyError(e);
+      $("wkErr").classList.add("show");
+    }).then(function () {
+      $("wkBtn").disabled = false;
+      $("wkBtn").textContent = "Check in";
+    });
+  });
+
+  // ---- another child ---------------------------------------------------
+  $("anotherBtn").addEventListener("click", function () {
+    $("childName").value = "";
+    show("nameForm");
+    $("childName").focus();
+  });
+
+  show("nameForm");
+})();
+</script>
+</body>
+</html>

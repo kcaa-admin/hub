@@ -144,9 +144,44 @@ Because this is a brand-new database, it starts empty. The five schools you alre
 | Brand Guide | `brand-guide.html` |
 | Recruitment intro material | `recruitment-intro.html` |
 | Outreach Tracker | `outreach-tracker.html` |
+| Attendance Tracker (board) | `attendance-tracker.html` |
+| Parent check-in (public, from the QR code) | `checkin.html` |
+| Check-in QR poster | `checkin-qr.html` |
+| Firestore rules (paste into Firebase) | `firestore.rules` |
 
 All internal links between these pages already use these filenames, so as long as they all sit in the same folder (repo root, as this guide sets up), nothing else needs to change.
 
 ## What never changes here
 
 Nothing about the Brand Guide, Roadmap, Volunteer Program, or Recruitment intro material needs Firebase or any other backend — they're plain pages and will work forever on GitHub Pages at no cost. Only the Outreach Tracker needs Part 2, because it's the one page with data that's meant to be shared and saved.
+
+---
+
+## Part 3 — Attendance tracker (Learn 2 Skate / Future Stars check-in)
+
+Unlike the other Live Tools, this one holds kids' data, so it is **not** left open:
+
+- **Parents** (`checkin.html`, no Hub password) can only look up one child by typing their exact full name, and add a check-in or a walk-in. They can't list the roster or see anyone else's data.
+- **The board** (`attendance-tracker.html`) has to sign in with Google, using an email on the allow-list in `firestore.rules`.
+- **The roster itself is never in this repo.** It only lives in Firebase, loaded by pasting from the 2026-2027 Future Stars sheet on the tracker page.
+
+### One-time setup (about 5 minutes, in the Firebase console for `kcaa-hub`)
+
+1. **Turn on Google sign-in:** Build → Authentication → Get started → Sign-in method → Google → Enable → pick a support email → Save.
+2. **Allow the site's domain:** Authentication → Settings → Authorized domains → Add domain → `kcaa-admin.github.io`.
+3. **Publish the rules:** Firestore Database → Rules → replace *everything* with the contents of `firestore.rules` → Publish. (It keeps `schools`, `meeting_minutes`, and `coffee_pickup` open exactly as before.)
+4. **Load the roster:** open the Attendance Tracker → Sign in with Google (info@kcaa.ca) → Roster sync. In the sheet, open the Learn 2 Skate tab, Ctrl+A, Ctrl+C, paste, Sync. Repeat for the Future Stars tab.
+5. **Test:** on the tracker, click "Open test check-in", type a rostered child's name, and watch it appear under "Test session".
+6. **Print** the poster from `checkin-qr.html`.
+
+### Giving another board member access
+
+Add their Google email to the list in `isAdmin()` in `firestore.rules` (e.g. `['info@kcaa.ca', 'someone@gmail.com']`) and publish the rules again.
+
+### Every week
+
+Nothing. The QR code always points to `checkin.html`, which works out the session from the date (Toronto time). On non-session days it shows the next session date instead of a form. When new kids register, paste that tab into Roster sync again.
+
+### Next season
+
+Update the `SESSIONS` list in `checkin.html` and `attendance-tracker.html`, and `validSession()` in `firestore.rules`. If the site ever moves to a custom domain (e.g. kcaa.ca), the printed QR code still points at the github.io address, so reprint it from `checkin-qr.html` after updating `CHECKIN_URL`.

@@ -1,0 +1,64 @@
+rules_version = '2';
+
+// KCAA Hub — Firestore security rules (the whole file).
+// Paste this ENTIRE file into Firebase console → Firestore Database → Rules → Publish.
+// It replaces whatever is there, so it keeps the existing Live Tools open as before.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---- existing Live Tools: unchanged (open, no sign-in) ----
+    match /schools/{id}         { allow read, write: if true; }
+    match /meeting_minutes/{id} { allow read, write: if true; }
+    match /coffee_pickup/{id}   { allow read, write: if true; }
+
+    // ---- Attendance (kids' data) ----
+    // Board members who can see the tracker. Add an email here to give access.
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.lower() in ['info@kcaa.ca'];
+    }
+    // Keep in sync with SESSIONS in checkin.html / attendance-tracker.html.
+    function validSession(d) {
+      return d in ['test',
+        '2026-10-11','2026-10-18','2026-10-25','2026-11-01','2026-11-08',
+        '2026-11-15','2026-11-22','2026-11-29','2026-12-06','2026-12-13',
+        '2027-01-10','2027-01-17','2027-01-24','2027-01-31','2027-02-07',
+        '2027-02-14','2027-02-21','2027-02-28','2027-03-07','2027-03-21'];
+    }
+
+    // Parents can look up ONE child by exact name key; nobody but admins can list.
+    match /checkin_roster/{key} {
+      allow get: if true;
+      allow list, write: if isAdmin();
+    }
+
+    // Parents can create a check-in for a rostered child, once per session.
+    match /checkins/{id} {
+      allow get: if true;
+      allow list, update, delete: if isAdmin();
+      allow create: if isAdmin() || (
+        request.resource.data.keys().hasOnly(['key', 'sessionDate', 'method', 'checkedInAt'])
+        && request.resource.data.method == 'qr'
+        && request.resource.data.checkedInAt == request.time
+        && validSession(request.resource.data.sessionDate)
+        && id == request.resource.data.sessionDate + '__' + request.resource.data.key
+        && exists(/databases/$(database)/documents/checkin_roster/$(request.resource.data.key))
+      );
+    }
+
+    // "My child isn't listed" — parents can submit, only admins can read.
+    match /checkin_walkins/{id} {
+      allow read, update, delete: if isAdmin();
+      allow create: if isAdmin() || (
+        request.resource.data.keys().hasOnly(['childName', 'parentName', 'phone', 'program', 'sessionDate', 'createdAt'])
+        && request.resource.data.childName is string && request.resource.data.childName.size() >= 2 && request.resource.data.childName.size() <= 80
+        && request.resource.data.parentName is string && request.resource.data.parentName.size() >= 2 && request.resource.data.parentName.size() <= 80
+        && request.resource.data.phone is string && request.resource.data.phone.size() >= 7 && request.resource.data.phone.size() <= 30
+        && request.resource.data.program in ['Not sure', 'Learn 2 Skate', 'Future Stars']
+        && request.resource.data.createdAt == request.time
+        && validSession(request.resource.data.sessionDate)
+      );
+    }
+  }
+}
