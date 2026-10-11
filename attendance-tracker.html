@@ -127,6 +127,7 @@
   </form>
 </div>
 <script src="gate.js"></script>
+<script src="nav.js"></script>
 
 <div class="page">
   <a class="back-nav" href="index.html"><span class="arrow">&larr;</span> Back to Hub</a>
@@ -134,11 +135,6 @@
   <p class="eyebrow">KCAA &middot; Hockey Program</p>
   <h1>Attendance Tracker</h1>
   <p class="lede">Who's checked in for each Learn 2 Skate and Future Stars session. Parents check in from the <a href="checkin-qr.html">rink QR poster</a>, using the same code every week &mdash; this page updates live as they do.</p>
-
-  <div class="authbar" id="authbar">
-    <span id="authStatus"></span>
-    <button type="button" class="btn ghost small" id="signOutBtn">Sign out</button>
-  </div>
 
   <div class="callout hidden" id="authErr"></div>
 
@@ -513,16 +509,12 @@
     }, showErr));
   }
 
-  $("signOutBtn").addEventListener("click", function () { window.kcaaSignOut(); });
-
   window.kcaaFirebaseReady.then(function (shared) {
     return import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js").then(function (firestoreApi) {
       fs = firestoreApi; db = fs.getFirestore(shared.app); auth = shared.auth;
-      $("authStatus").textContent = "Signed in as " + auth.currentUser.email;
       startListening();
     });
   }).catch(function (e) {
-    $("authStatus").textContent = "";
     showErr(new Error("Could not load Firebase: " + e));
   });
 })();
