@@ -136,14 +136,13 @@
   <p class="lede">Who's checked in for each Learn 2 Skate and Future Stars session. Parents check in from the <a href="checkin-qr.html">rink QR poster</a>, using the same code every week &mdash; this page updates live as they do.</p>
 
   <div class="authbar" id="authbar">
-    <span id="authStatus">Connecting&hellip;</span>
-    <button type="button" class="btn primary small hidden" id="signInBtn">Sign in with Google</button>
-    <button type="button" class="btn ghost small hidden" id="signOutBtn">Sign out</button>
+    <span id="authStatus"></span>
+    <button type="button" class="btn ghost small" id="signOutBtn">Sign out</button>
   </div>
 
   <div class="callout hidden" id="authErr"></div>
 
-  <div id="app" class="hidden">
+  <div id="app">
 
     <!-- ===== Session view ===== -->
     <section class="block">
@@ -212,8 +211,10 @@
 <!--
   ============================================================================
   FIREBASE — same kcaa-hub project as the other Live Tools. Unlike those, this
-  data is about kids, so reads need a Google sign-in from an address on the
-  allow-list in the Firestore rules (see SETUP-GUIDE.md, "Attendance tracker").
+  data is about kids, so reads need an @kcaa.ca Google sign-in (see
+  isAdmin() in firestore.rules). Auth itself is handled once, for the whole
+  page, by gate.js — this script awaits window.kcaaFirebaseReady and reuses
+  that same signed-in Firebase App (via shared.app/shared.auth).
     checkin_roster/{nameKey}      one doc per child: name, program, seasons, age
     checkins/{date}__{nameKey}    one doc per child per session
     checkin_walkins/{auto}        "my child isn't listed" submissions
@@ -222,15 +223,6 @@
 <script>
 (function () {
   "use strict";
-
-  var firebaseConfig = {
-    apiKey: "AIzaSyCTI8_wse6mW5O5KVP362eNQFpHQRiz_64",
-    authDomain: "kcaa-hub.firebaseapp.com",
-    projectId: "kcaa-hub",
-    storageBucket: "kcaa-hub.firebasestorage.app",
-    messagingSenderId: "36937011424",
-    appId: "1:36937011424:web:825b1d1a1b23e82d514085"
-  };
 
   // Keep in sync with checkin.html and the validSession() list in the rules.
   var SESSIONS = [
@@ -294,7 +286,7 @@
   var roster = {};    // key -> {name, program, seasons, age}
   var checkins = {};  // docId -> {key, sessionDate, method, checkedInAt}
   var walkins = [];   // [{id, ...}]
-  var fs = null, db = null, authApi = null, auth = null;
+  var fs = null, db = null, auth = null;
   var unsubs = [];
 
   // ---- session picker: default to today, else the next upcoming session --
@@ -489,17 +481,18 @@
   });
 
   // ---- errors / auth ---------------------------------------------------
+  // gate.js already guarantees a signed-in @kcaa.ca user before this page's
+  // content is shown, so there's no sign-in UI here — just a status line and
+  // a sign-out shortcut (handy on a shared rink device).
   function showErr(e) {
     console.error(e);
     var el = $("authErr");
     var denied = e && (e.code === "permission-denied" || /permission/i.test(String(e.message)));
     el.innerHTML = denied
-      ? "<strong>Access denied.</strong> This Google account isn't on the attendance allow-list in the Firestore rules (see SETUP-GUIDE.md), or the rules haven't been published yet."
+      ? "<strong>Access denied.</strong> Your account isn't an @kcaa.ca address, or the Firestore rules haven't been published yet (see SETUP-GUIDE.md)."
       : "<strong>Something went wrong:</strong> " + esc(e && e.message ? e.message : e);
     el.classList.remove("hidden");
   }
-
-  function stopListening() { unsubs.forEach(function (u) { u(); }); unsubs = []; roster = {}; checkins = {}; walkins = []; }
 
   function startListening() {
     unsubs.push(fs.onSnapshot(fs.collection(db, "checkin_roster"), function (snap) {
@@ -520,36 +513,13 @@
     }, showErr));
   }
 
-  $("signInBtn").addEventListener("click", function () {
-    $("authErr").classList.add("hidden");
-    authApi.signInWithPopup(auth, new authApi.GoogleAuthProvider()).catch(showErr);
-  });
-  $("signOutBtn").addEventListener("click", function () { authApi.signOut(auth); });
+  $("signOutBtn").addEventListener("click", function () { window.kcaaSignOut(); });
 
-  Promise.all([
-    import("https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js"),
-    import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js"),
-    import("https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js")
-  ]).then(function (mods) {
-    var app = mods[0].initializeApp(firebaseConfig);
-    fs = mods[1]; db = fs.getFirestore(app);
-    authApi = mods[2]; auth = authApi.getAuth(app);
-
-    authApi.onAuthStateChanged(auth, function (user) {
-      stopListening();
-      $("authErr").classList.add("hidden");
-      if (user) {
-        $("authStatus").textContent = "Signed in as " + user.email;
-        $("signInBtn").classList.add("hidden");
-        $("signOutBtn").classList.remove("hidden");
-        $("app").classList.remove("hidden");
-        startListening();
-      } else {
-        $("authStatus").textContent = "Kids' attendance data — sign in with a KCAA-approved Google account to view.";
-        $("signInBtn").classList.remove("hidden");
-        $("signOutBtn").classList.add("hidden");
-        $("app").classList.add("hidden");
-      }
+  window.kcaaFirebaseReady.then(function (shared) {
+    return import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js").then(function (firestoreApi) {
+      fs = firestoreApi; db = fs.getFirestore(shared.app); auth = shared.auth;
+      $("authStatus").textContent = "Signed in as " + auth.currentUser.email;
+      startListening();
     });
   }).catch(function (e) {
     $("authStatus").textContent = "";

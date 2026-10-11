@@ -156,14 +156,6 @@
 (function () {
   "use strict";
 
-  var firebaseConfig = {
-    apiKey: "AIzaSyCTI8_wse6mW5O5KVP362eNQFpHQRiz_64",
-    authDomain: "kcaa-hub.firebaseapp.com",
-    projectId: "kcaa-hub",
-    storageBucket: "kcaa-hub.firebasestorage.app",
-    messagingSenderId: "36937011424",
-    appId: "1:36937011424:web:825b1d1a1b23e82d514085"
-  };
   var fsApi = null;
   var firestoreDb = null;
   var localMode = false;
@@ -288,39 +280,32 @@
   }
 
   (function initFirebase() {
-    if (!firebaseConfig.apiKey || firebaseConfig.apiKey.indexOf("REPLACE_WITH") === 0) {
-      goLocalMode("firebaseConfig still has placeholder values");
-      return;
-    }
-    Promise.all([
-      import("https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js"),
-      import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js")
-    ]).then(function (mods) {
-      var appApi = mods[0], firestoreApi = mods[1];
-      fsApi = firestoreApi;
+    window.kcaaFirebaseReady.then(function (shared) {
+      return import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js").then(function (firestoreApi) {
+        fsApi = firestoreApi;
 
-      var app = appApi.initializeApp(firebaseConfig);
-      firestoreDb = firestoreApi.getFirestore(app);
-      var docRef = firestoreApi.doc(firestoreDb, "coffee_pickup", "schedule");
+        firestoreDb = firestoreApi.getFirestore(shared.app);
+        var docRef = firestoreApi.doc(firestoreDb, "coffee_pickup", "schedule");
 
-      firestoreApi.getDoc(docRef).then(function (snap) {
-        if (!snap.exists()) {
-          // First time this tool has been opened — seed the shared doc.
-          return fsApi.setDoc(docRef, { rows: rows, updatedAt: new Date().toISOString() });
-        }
-      }).catch(function (e) { console.error("seed check failed", e); });
-
-      firestoreApi.onSnapshot(
-        docRef,
-        function (snap) {
-          var data = snap.data();
-          if (data && Array.isArray(data.rows) && data.rows.length) {
-            rows = data.rows;
-            render();
+        firestoreApi.getDoc(docRef).then(function (snap) {
+          if (!snap.exists()) {
+            // First time this tool has been opened — seed the shared doc.
+            return fsApi.setDoc(docRef, { rows: rows, updatedAt: new Date().toISOString() });
           }
-        },
-        function (err) { goLocalMode("onSnapshot error: " + err); }
-      );
+        }).catch(function (e) { console.error("seed check failed", e); });
+
+        firestoreApi.onSnapshot(
+          docRef,
+          function (snap) {
+            var data = snap.data();
+            if (data && Array.isArray(data.rows) && data.rows.length) {
+              rows = data.rows;
+              render();
+            }
+          },
+          function (err) { goLocalMode("onSnapshot error: " + err); }
+        );
+      });
     }).catch(function (e) {
       goLocalMode("could not load Firebase SDK: " + e);
     });

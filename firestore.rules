@@ -2,22 +2,26 @@ rules_version = '2';
 
 // KCAA Hub — Firestore security rules (the whole file).
 // Paste this ENTIRE file into Firebase console → Firestore Database → Rules → Publish.
-// It replaces whatever is there, so it keeps the existing Live Tools open as before.
+// Every collection below requires an @kcaa.ca Google sign-in (see isAdmin()),
+// except the parent-facing check-in paths, which stay open on purpose.
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ---- existing Live Tools: unchanged (open, no sign-in) ----
-    match /schools/{id}         { allow read, write: if true; }
-    match /meeting_minutes/{id} { allow read, write: if true; }
-    match /coffee_pickup/{id}   { allow read, write: if true; }
-
-    // ---- Attendance (kids' data) ----
-    // Board members who can see the tracker. Add an email here to give access.
+    // Anyone signed in with an @kcaa.ca Google account. Domain-based, not a
+    // per-person list — matches gate.js, which only lets @kcaa.ca accounts
+    // past the Hub's sign-in screen in the first place.
     function isAdmin() {
       return request.auth != null
         && request.auth.token.email_verified == true
-        && request.auth.token.email.lower() in ['info@kcaa.ca'];
+        && request.auth.token.email.lower().matches('.*@kcaa[.]ca$');
     }
+
+    // ---- Live Tools: any signed-in board member ----
+    match /schools/{id}         { allow read, write: if isAdmin(); }
+    match /meeting_minutes/{id} { allow read, write: if isAdmin(); }
+    match /coffee_pickup/{id}   { allow read, write: if isAdmin(); }
+
+    // ---- Attendance (kids' data) ----
     // Keep in sync with SESSIONS in checkin.html / attendance-tracker.html.
     function validSession(d) {
       return d in ['test',

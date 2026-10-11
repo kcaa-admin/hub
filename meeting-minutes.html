@@ -283,23 +283,16 @@
       allow read, write: if true;
     }
 
-  Same open-rules tradeoff as the outreach tracker: small trusted-board tool
-  behind the password gate, no login required. This config is a public
-  identifier, not a secret — it's meant to ship in client-side code.
+  Auth is handled once, for the whole page, by gate.js: this script just
+  awaits window.kcaaFirebaseReady and reuses that same signed-in Firebase
+  App (via shared.app) so its Firestore reads/writes carry the signed-in
+  @kcaa.ca user's ID token, per firestore.rules' isAdmin() check.
   ============================================================================
 -->
 <script>
 (function () {
   "use strict";
 
-  var firebaseConfig = {
-    apiKey: "AIzaSyCTI8_wse6mW5O5KVP362eNQFpHQRiz_64",
-    authDomain: "kcaa-hub.firebaseapp.com",
-    projectId: "kcaa-hub",
-    storageBucket: "kcaa-hub.firebasestorage.app",
-    messagingSenderId: "36937011424",
-    appId: "1:36937011424:web:825b1d1a1b23e82d514085"
-  };
   var fsApi = null;
   var firestoreDb = null;
   var localMode = false;
@@ -1012,33 +1005,26 @@
   }
 
   (function initFirebase() {
-    if (!firebaseConfig.apiKey || firebaseConfig.apiKey.indexOf("REPLACE_WITH") === 0) {
-      goLocalMode("firebaseConfig still has placeholder values");
-      return;
-    }
-    Promise.all([
-      import("https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js"),
-      import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js")
-    ]).then(function (mods) {
-      var appApi = mods[0], firestoreApi = mods[1];
-      fsApi = firestoreApi;
+    window.kcaaFirebaseReady.then(function (shared) {
+      return import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js").then(function (firestoreApi) {
+        fsApi = firestoreApi;
 
-      var app = appApi.initializeApp(firebaseConfig);
-      firestoreDb = firestoreApi.getFirestore(app);
+        firestoreDb = firestoreApi.getFirestore(shared.app);
 
-      firestoreApi.onSnapshot(
-        firestoreApi.collection(firestoreDb, "meeting_minutes"),
-        function (snap) {
-          meetings = snap.docs.map(function (d) {
-            var data = d.data() || {};
-            data.id = d.id;
-            return data;
-          });
-          meetings.sort(function (a, b) { return (b.date || "").localeCompare(a.date || ""); });
-          renderArchive();
-        },
-        function (err) { goLocalMode("onSnapshot error: " + err); }
-      );
+        firestoreApi.onSnapshot(
+          firestoreApi.collection(firestoreDb, "meeting_minutes"),
+          function (snap) {
+            meetings = snap.docs.map(function (d) {
+              var data = d.data() || {};
+              data.id = d.id;
+              return data;
+            });
+            meetings.sort(function (a, b) { return (b.date || "").localeCompare(a.date || ""); });
+            renderArchive();
+          },
+          function (err) { goLocalMode("onSnapshot error: " + err); }
+        );
+      });
     }).catch(function (e) {
       goLocalMode("could not load Firebase SDK: " + e);
     });

@@ -9,6 +9,8 @@ There are two parts to this walkthrough:
 
 You can do part 1 today and leave the tracker in "local mode" (each visitor's edits stay only in their own browser) until you're ready for part 2 — the site will say so with a small banner at the top of the tracker page until Firebase is configured.
 
+**Sign-in:** the whole Hub is gated by `gate.js`, which requires signing in with an `@kcaa.ca` Google account (see Part 3 — the Google sign-in setup described there isn't just for the attendance tracker anymore, it's what gates every page). There's no shared password anymore.
+
 ---
 
 ## Part 1 — Publish on GitHub Pages
@@ -53,7 +55,7 @@ The tracker currently saves its data using a feature that only exists inside cla
 
 Firebase (a free Google product) is the replacement: it gives the tracker a real shared database, and it's already wired into the `outreach-tracker.html` file in this folder — you just need to create a Firebase project and paste in a few config values. No coding required.
 
-**This is deliberately the simple version.** The tracker is holding a few dozen schools, tops, edited by a small trusted board — not a public app with strangers pounding on it — so there's no login screen, no accounts, no auth setup. Just a small shared database with rules that leave it open. That's a real tradeoff (see step 3), but it's the right amount of engineering for this job; it can always be locked down later if the tracker's use ever changes.
+**This is deliberately the simple version.** The tracker is holding a few dozen schools, tops, edited by a small trusted board. Access control isn't handled per-tool — the whole Hub sits behind one Google sign-in gate (`gate.js`, any `@kcaa.ca` account), and `firestore.rules` just checks that same `@kcaa.ca` sign-in before allowing reads/writes here. See Part 3 for the one-time Google sign-in setup in the Firebase console — it's shared across every Live Tool, not just the tracker.
 
 ### 1. Create a Firebase project
 
@@ -84,7 +86,7 @@ service cloud.firestore {
 
 - Click **Publish**.
 
-This leaves the `schools` collection open — anyone who has the tracker's URL can read and write it, with no sign-in required. For a small internal board tool at a URL you're not publishing anywhere, that's a reasonable tradeoff in exchange for zero login friction. It is **not** appropriate if this URL ever becomes public or the data gets more sensitive — if that changes, come back and we can add a login step (e.g. Google Sign-In restricted to specific board members' emails) without touching the rest of the page.
+This is just to get Firestore working while you're setting things up — it leaves the `schools` collection open with no sign-in required. Once you reach Part 3 below, replace this with the full contents of `firestore.rules` instead, which requires an `@kcaa.ca` Google sign-in for `schools` (and every other Live Tool's collection) rather than leaving it open.
 
 ### 4. Get your Firebase config values
 
@@ -157,26 +159,28 @@ Nothing about the Brand Guide, Roadmap, Volunteer Program, or Recruitment intro 
 
 ---
 
-## Part 3 — Attendance tracker (Learn 2 Skate / Future Stars check-in)
+## Part 3 — Hub-wide Google sign-in (and the attendance tracker's kids' data)
 
-Unlike the other Live Tools, this one holds kids' data, so it is **not** left open:
+The whole Hub requires signing in with an `@kcaa.ca` Google account — `gate.js` handles this on every page, and `firestore.rules`' `isAdmin()` checks the same `@kcaa.ca` domain before allowing any Firestore read/write. There's no shared password and no per-person email list to maintain — anyone with a working `@kcaa.ca` account is in.
 
-- **Parents** (`checkin.html`, no Hub password) can only look up one child by typing their exact full name, and add a check-in or a walk-in. They can't list the roster or see anyone else's data.
-- **The board** (`attendance-tracker.html`) has to sign in with Google, using an email on the allow-list in `firestore.rules`.
+The one exception is the attendance tracker's parent-facing side, which holds kids' data and is intentionally **not** behind this gate at all:
+
+- **Parents** (`checkin.html`, no sign-in) can only look up one child by typing their exact full name, and add a check-in or a walk-in. They can't list the roster or see anyone else's data.
+- **The board** (`attendance-tracker.html`, and everything else in the Hub) requires the `@kcaa.ca` sign-in described above.
 - **The roster itself is never in this repo.** It only lives in Firebase, loaded by pasting from the 2026-2027 Future Stars sheet on the tracker page.
 
 ### One-time setup (about 5 minutes, in the Firebase console for `kcaa-hub`)
 
 1. **Turn on Google sign-in:** Build → Authentication → Get started → Sign-in method → Google → Enable → pick a support email → Save.
 2. **Allow the site's domain:** Authentication → Settings → Authorized domains → Add domain → `kcaa-admin.github.io`.
-3. **Publish the rules:** Firestore Database → Rules → replace *everything* with the contents of `firestore.rules` → Publish. (It keeps `schools`, `meeting_minutes`, and `coffee_pickup` open exactly as before.)
-4. **Load the roster:** open the Attendance Tracker → Sign in with Google (info@kcaa.ca) → Roster sync. In the sheet, open the Learn 2 Skate tab, Ctrl+A, Ctrl+C, paste, Sync. Repeat for the Future Stars tab.
+3. **Publish the rules:** Firestore Database → Rules → replace *everything* with the contents of `firestore.rules` → Publish. (This is the step that actually requires `@kcaa.ca` sign-in for `schools`, `meeting_minutes`, and `coffee_pickup`, instead of leaving them open.)
+4. **Load the roster:** open the Attendance Tracker → sign in with an `@kcaa.ca` Google account → Roster sync. In the sheet, open the Learn 2 Skate tab, Ctrl+A, Ctrl+C, paste, Sync. Repeat for the Future Stars tab.
 5. **Test:** on the tracker, click "Open test check-in", type a rostered child's name, and watch it appear under "Test session".
 6. **Print** the poster from `checkin-qr.html`.
 
-### Giving another board member access
+### Giving someone access, or taking it away
 
-Add their Google email to the list in `isAdmin()` in `firestore.rules` (e.g. `['info@kcaa.ca', 'someone@gmail.com']`) and publish the rules again.
+Access is domain-based, not a per-person list: anyone signing in with an `@kcaa.ca` Google account gets in automatically — nothing to edit in `firestore.rules` when someone joins. To revoke access for one person without affecting anyone else, that has to happen at the `@kcaa.ca` Google Workspace level (suspend/remove their account), since Firestore itself only checks the domain. If the board ever wants a tighter, explicit allow-list again instead of the whole domain, `isAdmin()` in `firestore.rules` can go back to an email list — ask me and I'll make that change.
 
 ### Every week
 

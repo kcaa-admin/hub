@@ -237,36 +237,16 @@
 <!--
   ============================================================================
   FIREBASE SETUP — see the setup guide that came with this file.
-  This tracker holds a small list (a few dozen schools, tops), so this is
-  kept intentionally simple: no login screen, no auth layer — just a small
-  shared Firestore database.
-  1. Create a free Firebase project (firebase.google.com) and enable
-     Firestore Database.
-  2. Project settings → General → Your apps → Add app → Web app.
-     Copy the config object Firebase gives you into firebaseConfig below.
-  3. Firestore → Rules, and paste in the (open) rules from the setup guide.
-     Anyone with this page's URL can read/write the tracker — reasonable for
-     a small internal tool at an unpublished URL, not for anything sensitive.
-  This config is a public identifier, not a secret — it's meant to ship in
-  client-side code.
+  Auth is handled once, for the whole page, by gate.js: this script just
+  awaits window.kcaaFirebaseReady and reuses that same signed-in Firebase
+  App (via shared.app) so its Firestore reads/writes carry the signed-in
+  @kcaa.ca user's ID token, per firestore.rules' isAdmin() check.
   ============================================================================
 -->
 <script>
 (function () {
   "use strict";
 
-  // Firebase is loaded on demand (below, via dynamic import) rather than as a
-  // static <script type="module"> import, so that a network hiccup or an
-  // unconfigured project degrades gracefully into local mode instead of
-  // breaking the whole page.
-  var firebaseConfig = {
-    apiKey: "AIzaSyCTI8_wse6mW5O5KVP362eNQFpHQRiz_64",
-    authDomain: "kcaa-hub.firebaseapp.com",
-    projectId: "kcaa-hub",
-    storageBucket: "kcaa-hub.firebasestorage.app",
-    messagingSenderId: "36937011424",
-    appId: "1:36937011424:web:825b1d1a1b23e82d514085"
-  };
   var fsApi = null; // populated with the firebase-firestore module namespace once loaded
 
   // ---- stage taxonomy -------------------------------------------------
@@ -655,39 +635,29 @@
   }
 
   (function initFirebase() {
-    if (!firebaseConfig.apiKey || firebaseConfig.apiKey.indexOf("REPLACE_WITH") === 0) {
-      // Config hasn't been filled in yet — run in local (per-browser, non-shared) mode.
-      goLocalMode("firebaseConfig still has placeholder values");
-      return;
-    }
     // Loaded on demand (not a static <script type="module"> import) so that a
     // blocked/offline network degrades to local mode instead of breaking the
-    // whole page before any of the code above ever runs. No auth layer —
-    // this list is small and low-stakes, so the Firestore rules are just
-    // left open (see the setup guide) rather than adding a sign-in step.
-    Promise.all([
-      import("https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js"),
-      import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js")
-    ]).then(function (mods) {
-      var appApi = mods[0], firestoreApi = mods[1];
-      fsApi = firestoreApi;
+    // whole page before any of the code above ever runs.
+    window.kcaaFirebaseReady.then(function (shared) {
+      return import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js").then(function (firestoreApi) {
+        fsApi = firestoreApi;
 
-      var app = appApi.initializeApp(firebaseConfig);
-      firestoreDb = firestoreApi.getFirestore(app);
+        firestoreDb = firestoreApi.getFirestore(shared.app);
 
-      firestoreApi.onSnapshot(
-        firestoreApi.collection(firestoreDb, "schools"),
-        function (snap) {
-          schools = snap.docs.map(function (d) {
-            var data = d.data() || {};
-            data.id = d.id;
-            return data;
-          });
-          sortSchools();
-          render();
-        },
-        function (err) { goLocalMode("onSnapshot error: " + err); }
-      );
+        firestoreApi.onSnapshot(
+          firestoreApi.collection(firestoreDb, "schools"),
+          function (snap) {
+            schools = snap.docs.map(function (d) {
+              var data = d.data() || {};
+              data.id = d.id;
+              return data;
+            });
+            sortSchools();
+            render();
+          },
+          function (err) { goLocalMode("onSnapshot error: " + err); }
+        );
+      });
     }).catch(function (e) {
       goLocalMode("could not load Firebase SDK: " + e);
     });
