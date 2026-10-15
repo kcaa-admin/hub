@@ -27,6 +27,8 @@
   // Mirrors isSuperAdmin() in firestore.rules — that rule is what actually
   // enforces this, this list just decides whether to show the link at all.
   var SUPER_ADMINS = ["info@kcaa.ca"];
+  // Mirrors isSocialApprover() in firestore.rules, same idea as above.
+  var SOCIAL_APPROVERS = ["miriam.panahi@kcaa.ca", "caitlin.kim@kcaa.ca", "info@kcaa.ca"];
 
   var currentFile = location.pathname.split("/").pop() || "index.html";
 
@@ -140,6 +142,9 @@
       window.kcaaFirebaseReady.then(function (shared) {
         var email = shared.auth.currentUser && shared.auth.currentUser.email;
         if (email) document.getElementById("kcaa-nav-email").textContent = email;
+        if (email && SOCIAL_APPROVERS.indexOf(email.toLowerCase()) !== -1) {
+          MORE[0].items.push({ href: "social-media-review.html", label: "Post Review" });
+        }
         if (email && SUPER_ADMINS.indexOf(email.toLowerCase()) !== -1) {
           MORE.push({ group: "Admin", items: [{ href: "admin.html", label: "Edit Log" }] });
         }

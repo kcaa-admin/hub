@@ -26,10 +26,34 @@ service cloud.firestore {
         && request.auth.token.email.lower() in ['info@kcaa.ca'];
     }
 
+    // Only the people who may approve Instagram drafts (Miriam Panahi, main
+    // chair; Caitlin Kim, backup; info@kcaa.ca, Hub admin). Keep in sync with the "Post Review" link
+    // visibility in nav.js (SOCIAL_APPROVERS) — this rule is the real gate.
+    function isSocialApprover() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.lower() in ['miriam.panahi@kcaa.ca', 'caitlin.kim@kcaa.ca', 'info@kcaa.ca'];
+    }
+
     // ---- Live Tools: any signed-in board member ----
     match /schools/{id}         { allow read, write: if isAdmin(); }
     match /meeting_minutes/{id} { allow read, write: if isAdmin(); }
     match /coffee_pickup/{id}   { allow read, write: if isAdmin(); }
+
+    // ---- Social Media Agent: Instagram drafts ----
+    // The agent creates/redrafts/publishes with the Admin SDK (bypasses
+    // rules). Approvers can read, add a hand-written pending draft, and
+    // update ONLY the decision fields — never the caption/media, and never
+    // mark something "published" themselves.
+    match /social_drafts/{id} {
+      allow read: if isSocialApprover();
+      allow create: if isSocialApprover() && request.resource.data.status == 'pending';
+      allow update: if isSocialApprover()
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['status', 'feedback', 'decidedBy', 'decidedAt'])
+        && resource.data.status == 'pending'
+        && request.resource.data.status in ['approved', 'changes_requested', 'escalated'];
+    }
 
     // ---- Admin: edit log. Any signed-in board member's actions create
     // entries; only the super-admin list can read them back. ----
