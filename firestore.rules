@@ -52,7 +52,19 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys()
              .hasOnly(['status', 'feedback', 'decidedBy', 'decidedAt'])
         && resource.data.status == 'pending'
-        && request.resource.data.status in ['approved', 'changes_requested', 'escalated'];
+        && request.resource.data.status in ['approved', 'changes_requested', 'escalated', 'rejected'];
+    }
+
+    // Known senders for social@kcaa.ca intake. Doc id = lowercased sender
+    // email. Approvers mark a sender trusted (drops the "new sender" flag) or
+    // blocked (agent ignores their mail). The agent reads this with the Admin SDK.
+    match /social_senders/{email} {
+      allow read: if isSocialApprover();
+      allow create, update: if isSocialApprover()
+        && request.resource.data.keys().hasOnly(['email', 'status', 'by', 'at'])
+        && request.resource.data.status in ['trusted', 'blocked']
+        && request.resource.data.email == email;
+      allow delete: if isSocialApprover();
     }
 
     // ---- Admin: edit log. Any signed-in board member's actions create

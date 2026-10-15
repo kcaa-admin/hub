@@ -68,7 +68,7 @@
   .pill { display: inline-flex; align-items: center; font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 9px; border-radius: 999px; background: var(--line); color: var(--ink-soft); white-space: nowrap; }
   .pill.pending { background: var(--blue-soft); color: var(--blue); }
   .pill.approved, .pill.published { background: var(--green-soft); color: var(--green); }
-  .pill.changes_requested, .pill.escalated { background: var(--red-soft); color: var(--red); }
+  .pill.changes_requested, .pill.escalated, .pill.rejected { background: var(--red-soft); color: var(--red); }
   .draft-body { padding: 18px; }
   .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 18px; }
   .media-item { display: block; position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: var(--bg); text-decoration: none; }
@@ -81,6 +81,14 @@
   .history { margin: 0 0 16px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
   .history li { font-size: 12.5px; color: var(--ink-soft); background: var(--bg); border-radius: 8px; padding: 8px 12px; }
   .history li strong { color: var(--ink); }
+
+  .sender-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 16px; font-size: 13px; color: var(--ink-soft); }
+  .sender-row .addr { font-weight: 700; color: var(--ink); overflow-wrap: anywhere; }
+  .pill.new-sender { background: var(--red-soft); color: var(--red); }
+  .pill.trusted { background: var(--green-soft); color: var(--green); }
+  .btn.link { background: none; border: none; padding: 4px 6px; font-size: 12.5px; color: var(--blue); }
+  .btn.link.danger { color: var(--red); }
+  .btn.link:disabled { opacity: 0.5; }
 
   .actions { display: flex; flex-wrap: wrap; gap: 10px; }
   .change-box { display: none; margin-top: 14px; }
@@ -149,6 +157,7 @@
         <summary>Create a draft without waiting for the agent</summary>
         <form id="manualForm">
           <div><label for="mEvent">Event</label><input id="mEvent" required maxlength="120" placeholder="e.g. Learn 2 Skate — Oct 11"></div>
+          <div><label for="mSender">Sender email (optional — try a fake one to test the new-sender flag)</label><input id="mSender" type="email" maxlength="200" placeholder="volunteer@example.com"></div>
           <div><label for="mCaption">Caption (English)</label><textarea id="mCaption" required maxlength="2200"></textarea></div>
           <div><label for="mMedia">Photo / video links (one per line — Google Drive links)</label><textarea id="mMedia" placeholder="https://drive.google.com/file/d/…"></textarea></div>
           <div><button type="submit" class="btn primary small">Add draft</button></div>
@@ -170,12 +179,15 @@
   social_drafts/{id} document shape (the Social Media Agent writes these with
   the Admin SDK, which bypasses rules; this page only ever updates the
   decision fields):
-    status       "pending" | "changes_requested" | "escalated" | "approved" | "published"
+    status       "pending" | "changes_requested" | "escalated" | "approved" | "published" | "rejected"
     event        string
     caption      string (English only)
     mediaUrls    string[] (Google Drive links)
     flags        string[] optional, e.g. "Identifiable children — please double-check"
-    source       string optional, e.g. the intake email subject / sender
+    source       string optional, e.g. the intake email subject
+    senderEmail  string optional — who emailed social@kcaa.ca; drives the new-sender flag
+                 (social_senders/{lowercased email} = { email, status: trusted|blocked, by, at })
+                 The agent must skip mail from blocked senders and cap drafts at ~10/day.
     createdAt    ISO string
     revision     number — how many times the agent has redrafted (starts 0)
     feedback     [{ by, at, note }] — change requests, oldest first
@@ -194,6 +206,7 @@
 
   var fsApi = null, db = null, me = null;
   var drafts = [];
+  var senders = {}; // lowercased email -> "trusted" | "blocked"
 
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
@@ -206,7 +219,7 @@
     return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + " · " +
       d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
   }
-  var STATUS_LABEL = { pending: "Awaiting review", changes_requested: "Changes requested", escalated: "Escalated", approved: "Approved", published: "Published" };
+  var STATUS_LABEL = { pending: "Awaiting review", changes_requested: "Changes requested", escalated: "Escalated", approved: "Approved", published: "Published", rejected: "Discarded" };
 
   function driveId(url) {
     var m = /\/d\/([\w-]+)/.exec(url) || /[?&]id=([\w-]+)/.exec(url);
@@ -260,9 +273,18 @@
     var hist = rounds ? '<div class="field-label">Earlier change requests</div><ul class="history">' +
       d.feedback.map(function (f) { return "<li><strong>" + esc(f.by) + "</strong> · " + fmtWhen(f.at) + "<br>" + esc(f.note) + "</li>"; }).join("") + "</ul>" : "";
     var last = rounds + 1 > MAX_CHANGE_REQUESTS;
+    var sender = d.senderEmail ? String(d.senderEmail).toLowerCase() : "";
+    var senderRow = "";
+    if (sender) {
+      var trusted = senders[sender] === "trusted";
+      senderRow = '<div class="sender-row"><span>From</span><span class="addr">' + esc(sender) + "</span>" +
+        (trusted ? '<span class="pill trusted">Trusted sender</span>'
+                 : '<span class="pill new-sender">New sender — not yet trusted</span><button type="button" class="btn link" id="trustBtn">Trust this sender</button>') +
+        '<button type="button" class="btn link danger" id="blockBtn">Block sender &amp; discard</button></div>';
+    }
     return '<div class="draft" data-id="' + esc(d.id) + '">' +
       '<div class="draft-head"><span class="draft-title">' + esc(d.event) + '</span><span class="pill pending">Awaiting review</span></div>' +
-      '<div class="draft-body">' + flags + mediaHtml(d.mediaUrls) +
+      '<div class="draft-body">' + senderRow + flags + mediaHtml(d.mediaUrls) +
         '<div class="field-label">Instagram caption</div><div class="caption">' + esc(d.caption) + "</div>" +
         (d.source ? '<p class="meta">Source: ' + esc(d.source) + "</p>" : "") + hist +
         '<div class="actions"><button type="button" class="btn approve" id="approveBtn">Approve &amp; publish</button>' +
@@ -282,7 +304,33 @@
     var note = document.getElementById("changeNote");
     changes.addEventListener("click", function () { box.classList.toggle("show"); if (box.classList.contains("show")) note.focus(); });
 
-    function busy(on) { approve.disabled = changes.disabled = send.disabled = on; }
+    var trustBtn = document.getElementById("trustBtn");
+    var blockBtn = document.getElementById("blockBtn");
+    function busy(on) {
+      approve.disabled = changes.disabled = send.disabled = on;
+      if (trustBtn) trustBtn.disabled = on;
+      if (blockBtn) blockBtn.disabled = on;
+    }
+
+    function setSender(status) {
+      var email = String(d.senderEmail).toLowerCase();
+      return fsApi.setDoc(fsApi.doc(db, "social_senders", email), { email: email, status: status, by: me, at: new Date().toISOString() });
+    }
+    if (trustBtn) trustBtn.addEventListener("click", function () {
+      busy(true);
+      setSender("trusted")
+        .then(function () { logActivity("Trusted sender: " + d.senderEmail); })
+        .catch(function (e) { console.error("trust failed", e); alert("Couldn't save that — please try again."); busy(false); });
+    });
+    if (blockBtn) blockBtn.addEventListener("click", function () {
+      if (!confirm("Block " + d.senderEmail + " and discard this draft? The agent will ignore their future emails.")) return;
+      busy(true);
+      var now = new Date().toISOString();
+      setSender("blocked")
+        .then(function () { return fsApi.updateDoc(fsApi.doc(db, "social_drafts", d.id), { status: "rejected", decidedBy: me, decidedAt: now }); })
+        .then(function () { logActivity("Blocked sender and discarded draft: " + d.senderEmail + " (" + d.event + ")"); })
+        .catch(function (e) { console.error("block failed", e); alert("Couldn't save that — please try again."); busy(false); });
+    });
 
     approve.addEventListener("click", function () {
       if (!confirm("Approve this draft? The agent will publish it to Instagram.")) return;
@@ -325,6 +373,7 @@
       caption: document.getElementById("mCaption").value.trim(),
       mediaUrls: urls,
       flags: [],
+      senderEmail: document.getElementById("mSender").value.trim().toLowerCase(),
       source: "Added by hand by " + me,
       createdAt: new Date().toISOString(),
       revision: 0,
@@ -348,6 +397,11 @@
       db = api.getFirestore(shared.app);
       me = shared.auth.currentUser && shared.auth.currentUser.email;
       var q = api.query(api.collection(db, "social_drafts"), api.orderBy("createdAt", "desc"), api.limit(100));
+      api.onSnapshot(api.collection(db, "social_senders"), function (snap) {
+        senders = {};
+        snap.docs.forEach(function (s) { var x = s.data() || {}; senders[String(x.email || s.id).toLowerCase()] = x.status; });
+        render();
+      }, function (err) { console.error("social review: senders read failed", err); });
       api.onSnapshot(q, function (snap) {
         drafts = snap.docs.map(function (d) { var x = d.data() || {}; x.id = d.id; return x; });
         document.getElementById("app").style.display = "";
