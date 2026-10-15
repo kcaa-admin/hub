@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KCAA Admin — Edit Log</title>
+<meta name="description" content="Who changed what, and when, across the KCAA Hub's Live Tools.">
+<style>
+  :root {
+    --bg: #f3f5f7; --surface: #ffffff; --ink: #0a0a0a; --ink-soft: #565f68; --ink-faint: #889198;
+    --line: #dde2e6; --red: #d01048; --red-soft: #fbe6ec; --blue: #3090d8; --blue-soft: #e6f2fb;
+    --green: #2f8a4e; --green-soft: #e6f5ea;
+    --shadow: 0 1px 2px rgba(10,10,10,0.04), 0 8px 24px -14px rgba(10,10,10,0.16);
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    --bg: #101214; --surface: #1a1c1f; --ink: #f1f2f3; --ink-soft: #b4bac0; --ink-faint: #7d848b;
+    --line: #2c2f33; --red: #ef4778; --red-soft: #331a22; --blue: #5cabe6; --blue-soft: #17283a;
+    --green: #43b06a; --green-soft: #17301f;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 30px -14px rgba(0,0,0,0.6);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101214; --surface: #1a1c1f; --ink: #f1f2f3; --ink-soft: #b4bac0; --ink-faint: #7d848b;
+      --line: #2c2f33; --red: #ef4778; --red-soft: #331a22; --blue: #5cabe6; --blue-soft: #17283a;
+      --green: #43b06a; --green-soft: #17301f;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 30px -14px rgba(0,0,0,0.6);
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, "Segoe UI", ui-sans-serif, system-ui, sans-serif; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  .page { max-width: 960px; margin: 0 auto; padding: 32px 24px 100px; }
+
+  .back-nav { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--ink-soft); text-decoration: none; padding: 10px 4px; margin-bottom: 16px; }
+  .back-nav:hover, .back-nav:focus-visible { color: var(--blue); }
+  .back-nav .arrow { font-size: 15px; }
+
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue); margin: 0 0 10px; }
+  h1 { font-size: clamp(26px, 4vw, 36px); font-weight: 800; letter-spacing: -0.01em; margin: 0 0 12px; text-wrap: balance; }
+  .lede { font-size: 15.5px; color: var(--ink-soft); max-width: 66ch; margin: 0 0 20px; }
+
+  .callout { background: var(--blue-soft); border: 1px solid color-mix(in srgb, var(--blue) 30%, var(--line)); border-radius: 12px; padding: 14px 18px; font-size: 13.5px; margin-bottom: 28px; }
+  .callout strong { color: var(--blue); }
+
+  section.block { margin-bottom: 36px; }
+  h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-faint); margin: 0 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--line); display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  h2 .h2-note { font-size: 11px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--ink-faint); }
+
+  .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(122px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); margin-bottom: 16px; }
+  .stat-tile { background: var(--surface); padding: 14px 14px 12px; }
+  .stat-tile .num { font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 800; color: var(--blue); display: block; }
+  .stat-tile .label { font-size: 11px; color: var(--ink-faint); margin-top: 2px; line-height: 1.3; }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); box-shadow: var(--shadow); }
+  .chip .num { font-variant-numeric: tabular-nums; font-weight: 800; color: var(--ink); font-size: 13.5px; }
+
+  .filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .filter-row select { font: inherit; font-size: 13px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+  .filter-count { font-size: 12px; color: var(--ink-faint); margin-left: auto; }
+
+  .empty-state { background: var(--surface); border: 1px dashed var(--line); border-radius: 12px; padding: 28px 20px; text-align: center; color: var(--ink-faint); font-size: 13.5px; }
+
+  .log-list { display: flex; flex-direction: column; gap: 8px; }
+  .log-row { display: flex; align-items: baseline; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; box-shadow: var(--shadow); flex-wrap: wrap; }
+  .log-when { flex: 0 0 150px; font-size: 12px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+  .log-tool { display: inline-flex; font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 9px; border-radius: 999px; background: var(--blue-soft); color: var(--blue); white-space: nowrap; }
+  .log-by { font-size: 12.5px; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
+  .log-summary { flex: 1 1 260px; font-size: 13.5px; color: var(--ink); }
+
+  footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-faint); }
+
+  @media (max-width: 560px) {
+    .log-when { flex-basis: 100%; }
+  }
+</style>
+</head>
+<body>
+<div id="kcaa-gate" style="position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;">
+  <form id="kcaa-gate-form" style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 26px;box-shadow:var(--shadow);width:100%;max-width:320px;box-sizing:border-box;font-family:-apple-system,'Segoe UI',ui-sans-serif,system-ui,sans-serif;">
+    <p style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue);margin:0 0 8px;">KCAA Hub</p>
+    <h1 style="font-size:19px;font-weight:800;margin:0 0 16px;color:var(--ink);">Enter password</h1>
+    <input type="password" id="kcaa-gate-pw" autocomplete="current-password" placeholder="Password" style="width:100%;font:inherit;font-size:15px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);margin-bottom:12px;box-sizing:border-box;">
+    <button type="submit" style="width:100%;font:inherit;font-size:14px;font-weight:700;padding:10px 16px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;">Enter</button>
+    <p id="kcaa-gate-err" style="display:none;color:var(--red);font-size:13px;margin:12px 0 0;">Incorrect password &mdash; try again.</p>
+  </form>
+</div>
+<script src="gate.js"></script>
+<script src="nav.js"></script>
+
+<div class="page">
+  <a class="back-nav" href="index.html"><span class="arrow">&larr;</span> Back to Hub</a>
+
+  <p class="eyebrow">KCAA &middot; Admin</p>
+  <h1>Edit Log</h1>
+  <p class="lede">Who changed what across the Live Tools, and when.</p>
+
+  <div class="callout"><strong>Restricted:</strong> this page's data is only readable by the admin allow-list in <code>firestore.rules</code> &mdash; everyone else signed into the Hub can't see it.</div>
+
+  <div class="callout" id="accessDenied" style="display:none;background:var(--red-soft);border-color:color-mix(in srgb, var(--red) 30%, var(--line));">
+    <strong style="color:var(--red);">Access denied.</strong> Your account isn't on the admin allow-list for this page.
+  </div>
+
+  <div id="app" style="display:none;">
+    <section class="block">
+      <h2>Summary <span class="h2-note" id="summaryNote"></span></h2>
+      <div class="stat-row" id="statRow"></div>
+      <div class="chip-row" id="personChips"></div>
+    </section>
+
+    <section class="block">
+      <h2>Activity</h2>
+      <div class="filter-row">
+        <select id="toolFilter">
+          <option value="">All tools</option>
+        </select>
+        <select id="personFilter">
+          <option value="">Everyone</option>
+        </select>
+        <span class="filter-count" id="filterCount"></span>
+      </div>
+      <div class="log-list" id="logList"></div>
+      <div class="empty-state" id="emptyState" style="display:none;"></div>
+    </section>
+  </div>
+
+  <footer>KCAA internal &middot; admin edit log v1.0 &middot; data: Firestore <code>activity_log</code></footer>
+</div>
+
+<!--
+  ============================================================================
+  FIREBASE — same kcaa-hub project as the other Live Tools. Auth is handled
+  once by gate.js; this script awaits window.kcaaFirebaseReady and reuses
+  that signed-in Firebase App. firestore.rules' isSuperAdmin() is what
+  actually restricts reads of activity_log — if that read is denied, this
+  page shows the "Access denied" callout instead of the summary/feed.
+  ============================================================================
+-->
+<script>
+(function () {
+  "use strict";
+
+  var entries = []; // [{id, at, by, tool, summary}]
+  var TOOLS = ["Meeting Minutes", "Outreach Tracker", "Coffee Pickup Schedule"];
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function fmtWhen(iso) {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return esc(iso);
+    return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + " &middot; " +
+      d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  }
+
+  function fillSelect(sel, values, allLabel) {
+    var current = sel.value;
+    sel.innerHTML = '<option value="">' + esc(allLabel) + "</option>" +
+      values.map(function (v) { return '<option value="' + esc(v) + '">' + esc(v) + "</option>"; }).join("");
+    sel.value = current;
+  }
+
+  function render() {
+    renderSummary();
+    renderList();
+  }
+
+  function renderSummary() {
+    var byPerson = {};
+    entries.forEach(function (e) { byPerson[e.by] = (byPerson[e.by] || 0) + 1; });
+    var people = Object.keys(byPerson).sort(function (a, b) { return byPerson[b] - byPerson[a]; });
+
+    document.getElementById("statRow").innerHTML =
+      '<div class="stat-tile"><span class="num">' + entries.length + '</span><span class="label">Total edits logged</span></div>' +
+      '<div class="stat-tile"><span class="num">' + people.length + '</span><span class="label">Distinct editors</span></div>' +
+      '<div class="stat-tile"><span class="num">' + (entries.length ? fmtWhen(entries[0].at).replace(/&middot;.*/, "").trim() : "&mdash;") + '</span><span class="label">Most recent edit</span></div>';
+
+    document.getElementById("personChips").innerHTML = people.map(function (p) {
+      return '<span class="chip">' + esc(p) + ' <span class="num">' + byPerson[p] + "</span></span>";
+    }).join("") || '<span class="chip">No edits logged yet</span>';
+
+    fillSelect(document.getElementById("toolFilter"), TOOLS, "All tools");
+    fillSelect(document.getElementById("personFilter"), people, "Everyone");
+  }
+
+  function currentFilters() {
+    return {
+      tool: document.getElementById("toolFilter").value,
+      person: document.getElementById("personFilter").value
+    };
+  }
+
+  function renderList() {
+    var f = currentFilters();
+    var filtered = entries.filter(function (e) {
+      if (f.tool && e.tool !== f.tool) return false;
+      if (f.person && e.by !== f.person) return false;
+      return true;
+    });
+
+    document.getElementById("filterCount").textContent =
+      entries.length ? (filtered.length + " of " + entries.length + " shown") : "";
+
+    var listEl = document.getElementById("logList");
+    var emptyEl = document.getElementById("emptyState");
+    if (!filtered.length) {
+      listEl.innerHTML = "";
+      emptyEl.style.display = "block";
+      emptyEl.textContent = entries.length ? "No activity matches this filter." : "No activity logged yet — edits made in the Live Tools from now on will show up here.";
+      return;
+    }
+    emptyEl.style.display = "none";
+    listEl.innerHTML = filtered.map(function (e) {
+      return '<div class="log-row">' +
+        '<span class="log-when">' + fmtWhen(e.at) + "</span>" +
+        '<span class="log-tool">' + esc(e.tool) + "</span>" +
+        '<span class="log-by">' + esc(e.by) + "</span>" +
+        '<span class="log-summary">' + esc(e.summary) + "</span>" +
+      "</div>";
+    }).join("");
+  }
+
+  document.getElementById("toolFilter").addEventListener("change", renderList);
+  document.getElementById("personFilter").addEventListener("change", renderList);
+
+  function showAccessDenied() {
+    document.getElementById("accessDenied").style.display = "block";
+    document.getElementById("app").style.display = "none";
+  }
+
+  window.kcaaFirebaseReady.then(function (shared) {
+    return import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js").then(function (firestoreApi) {
+      var db = firestoreApi.getFirestore(shared.app);
+      var q = firestoreApi.query(
+        firestoreApi.collection(db, "activity_log"),
+        firestoreApi.orderBy("at", "desc"),
+        firestoreApi.limit(300)
+      );
+      firestoreApi.onSnapshot(q, function (snap) {
+        entries = snap.docs.map(function (d) {
+          var data = d.data() || {};
+          data.id = d.id;
+          return data;
+        });
+        document.getElementById("app").style.display = "";
+        document.getElementById("accessDenied").style.display = "none";
+        render();
+      }, function (err) {
+        console.error("admin: activity_log read failed", err);
+        showAccessDenied();
+      });
+    });
+  }).catch(function (e) {
+    console.error("admin: could not load Firebase", e);
+    showAccessDenied();
+  });
+})();
+</script>
+
+</body>
+</html>

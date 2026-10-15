@@ -317,9 +317,17 @@
   var firestoreDb = null;
   var editingId = null;     // id currently showing an inline edit form
   var localMode = false;    // true if Firestore is unavailable/unconfigured
+  var currentUserEmail = null;
 
   function genId() {
     return "s_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  function logActivity(summary) {
+    if (localMode || !firestoreDb || !currentUserEmail) return;
+    fsApi.addDoc(fsApi.collection(firestoreDb, "activity_log"), {
+      at: new Date().toISOString(), by: currentUserEmail, tool: "Outreach Tracker", summary: summary
+    }).catch(function (e) { console.error("activity log failed", e); });
   }
 
   // ---- rendering -----------------------------------------------------
@@ -557,6 +565,7 @@
 
   function addSchool(data) {
     data.updatedAt = new Date().toISOString();
+    data.editedBy = currentUserEmail;
     if (localMode || !firestoreDb) {
       data.id = genId();
       schools.push(data);
@@ -564,13 +573,16 @@
       render();
       return;
     }
-    fsApi.addDoc(fsApi.collection(firestoreDb, "schools"), data).catch(function (e) {
+    fsApi.addDoc(fsApi.collection(firestoreDb, "schools"), data).then(function () {
+      logActivity("Added school: " + data.name);
+    }).catch(function (e) {
       console.error("add failed", e);
     });
   }
 
   function updateSchool(id, patch) {
     patch.updatedAt = new Date().toISOString();
+    patch.editedBy = currentUserEmail;
     if (localMode || !firestoreDb) {
       var i = schools.findIndex(function (s) { return s.id === id; });
       if (i !== -1) schools[i] = Object.assign({}, schools[i], patch);
@@ -578,18 +590,23 @@
       render();
       return;
     }
-    fsApi.updateDoc(fsApi.doc(firestoreDb, "schools", id), patch).catch(function (e) {
+    fsApi.updateDoc(fsApi.doc(firestoreDb, "schools", id), patch).then(function () {
+      logActivity("Updated school: " + patch.name);
+    }).catch(function (e) {
       console.error("update failed", e);
     });
   }
 
   function removeSchool(id) {
+    var school = schools.find(function (s) { return s.id === id; });
     if (localMode || !firestoreDb) {
       schools = schools.filter(function (s) { return s.id !== id; });
       render();
       return;
     }
-    fsApi.deleteDoc(fsApi.doc(firestoreDb, "schools", id)).catch(function (e) {
+    fsApi.deleteDoc(fsApi.doc(firestoreDb, "schools", id)).then(function () {
+      logActivity("Deleted school: " + (school ? school.name : id));
+    }).catch(function (e) {
       console.error("delete failed", e);
     });
   }
@@ -644,6 +661,7 @@
         fsApi = firestoreApi;
 
         firestoreDb = firestoreApi.getFirestore(shared.app);
+        currentUserEmail = shared.auth.currentUser && shared.auth.currentUser.email;
 
         firestoreApi.onSnapshot(
           firestoreApi.collection(firestoreDb, "schools"),

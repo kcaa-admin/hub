@@ -149,6 +149,7 @@ Because this is a brand-new database, it starts empty. The five schools you alre
 | Attendance Tracker (board) | `attendance-tracker.html` |
 | Parent check-in (public, from the QR code) | `checkin.html` |
 | Check-in QR poster | `checkin-qr.html` |
+| Admin — edit log (restricted allow-list) | `admin.html` |
 | Firestore rules (paste into Firebase) | `firestore.rules` |
 
 All internal links between these pages already use these filenames, so as long as they all sit in the same folder (repo root, as this guide sets up), nothing else needs to change.
@@ -181,6 +182,16 @@ The one exception is the attendance tracker's parent-facing side, which holds ki
 ### Giving someone access, or taking it away
 
 Access is domain-based, not a per-person list: anyone signing in with an `@kcaa.ca` Google account gets in automatically — nothing to edit in `firestore.rules` when someone joins. To revoke access for one person without affecting anyone else, that has to happen at the `@kcaa.ca` Google Workspace level (suspend/remove their account), since Firestore itself only checks the domain. If the board ever wants a tighter, explicit allow-list again instead of the whole domain, `isAdmin()` in `firestore.rules` can go back to an email list — ask me and I'll make that change.
+
+### Admin section — the edit log
+
+`admin.html` shows who changed what across Meeting Minutes, the Outreach Tracker, and the Coffee Pickup Schedule (a summary of edit counts per person, plus the full chronological feed) — each of those tools now stamps `editedBy` on what it saves and writes a short entry to a new `activity_log` collection.
+
+Unlike the rest of the Hub, this page is **restricted to a short, explicit allow-list**, not the whole `@kcaa.ca` domain: `isSuperAdmin()` in `firestore.rules` (currently just `info@kcaa.ca`). To give someone else access, add their email to both:
+- `isSuperAdmin()` in `firestore.rules`, and publish the rules again, **and**
+- `SUPER_ADMINS` in `nav.js` (so the "Edit Log" link shows up for them under "More" — `firestore.rules` is what actually enforces access either way, this just decides whether to show the link).
+
+Attendance Tracker edits (check-ins, roster syncs) aren't logged here — only the three tools above.
 
 ### Every week
 

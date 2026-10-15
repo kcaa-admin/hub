@@ -16,10 +16,27 @@ service cloud.firestore {
         && request.auth.token.email.lower().matches('.*@kcaa[.]ca$');
     }
 
+    // A narrower list, just for the Admin section (the edit log). Add an
+    // email here to give someone access — keep this in sync with
+    // SUPER_ADMINS in nav.js, which is what decides whether to even show
+    // the "Admin" link (this rule is the real enforcement either way).
+    function isSuperAdmin() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.lower() in ['info@kcaa.ca'];
+    }
+
     // ---- Live Tools: any signed-in board member ----
     match /schools/{id}         { allow read, write: if isAdmin(); }
     match /meeting_minutes/{id} { allow read, write: if isAdmin(); }
     match /coffee_pickup/{id}   { allow read, write: if isAdmin(); }
+
+    // ---- Admin: edit log. Any signed-in board member's actions create
+    // entries; only the super-admin list can read them back. ----
+    match /activity_log/{id} {
+      allow create: if isAdmin();
+      allow read: if isSuperAdmin();
+    }
 
     // ---- Attendance (kids' data) ----
     // Keep in sync with SESSIONS in checkin.html / attendance-tracker.html.

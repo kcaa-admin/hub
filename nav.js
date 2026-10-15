@@ -24,6 +24,9 @@
       { href: "recruitment-intro.html", label: "Recruitment Intro Material" }
     ] }
   ];
+  // Mirrors isSuperAdmin() in firestore.rules — that rule is what actually
+  // enforces this, this list just decides whether to show the link at all.
+  var SUPER_ADMINS = ["info@kcaa.ca"];
 
   var currentFile = location.pathname.split("/").pop() || "index.html";
 
@@ -137,6 +140,9 @@
       window.kcaaFirebaseReady.then(function (shared) {
         var email = shared.auth.currentUser && shared.auth.currentUser.email;
         if (email) document.getElementById("kcaa-nav-email").textContent = email;
+        if (email && SUPER_ADMINS.indexOf(email.toLowerCase()) !== -1) {
+          MORE.push({ group: "Admin", items: [{ href: "admin.html", label: "Edit Log" }] });
+        }
       }).catch(function () { /* gate.js already shows its own fatal error */ });
     }
   }

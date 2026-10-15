@@ -297,6 +297,14 @@
   var fsApi = null;
   var firestoreDb = null;
   var localMode = false;
+  var currentUserEmail = null;
+
+  function logActivity(summary) {
+    if (localMode || !firestoreDb || !currentUserEmail) return;
+    fsApi.addDoc(fsApi.collection(firestoreDb, "activity_log"), {
+      at: new Date().toISOString(), by: currentUserEmail, tool: "Meeting Minutes", summary: summary
+    }).catch(function (e) { console.error("activity log failed", e); });
+  }
 
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
@@ -887,8 +895,10 @@
   function doSave() {
     if (!draft) return;
     draft.updatedAt = new Date().toISOString();
+    draft.editedBy = currentUserEmail;
     var payload = JSON.parse(JSON.stringify(draft));
     delete payload.id;
+    var dateLabel = fmtDate(payload.date).replace(/&mdash;/, "—");
 
     if (localMode || !firestoreDb) {
       if (!draftId) { draftId = genId(); payload.id = draftId; meetings.push(payload); }
@@ -908,10 +918,12 @@
         draftId = ref.id;
         setSaveIndicator("saved");
         document.getElementById("deleteMeetingBtn").style.display = "";
+        logActivity("Created minutes for " + dateLabel);
       }).catch(function (e) { console.error("create failed", e); });
     } else {
       fsApi.setDoc(fsApi.doc(firestoreDb, "meeting_minutes", draftId), payload).then(function () {
         setSaveIndicator("saved");
+        logActivity("Updated minutes for " + dateLabel);
       }).catch(function (e) { console.error("save failed", e); });
     }
   }
@@ -927,8 +939,10 @@
       renderArchive();
       return;
     }
+    var dateLabel = fmtDate(m.date).replace(/&mdash;/, "—");
     fsApi.deleteDoc(fsApi.doc(firestoreDb, "meeting_minutes", id)).then(function () {
       if (draftId === id) closeEditor();
+      logActivity("Deleted minutes for " + dateLabel);
     }).catch(function (e) { console.error("delete failed", e); });
   }
 
@@ -1011,6 +1025,7 @@
         fsApi = firestoreApi;
 
         firestoreDb = firestoreApi.getFirestore(shared.app);
+        currentUserEmail = shared.auth.currentUser && shared.auth.currentUser.email;
 
         firestoreApi.onSnapshot(
           firestoreApi.collection(firestoreDb, "meeting_minutes"),

@@ -160,6 +160,15 @@
   var fsApi = null;
   var firestoreDb = null;
   var localMode = false;
+  var currentUserEmail = null;
+  var changedDates = {}; // date -> true, cleared after each successful save
+
+  function logActivity(summary) {
+    if (localMode || !firestoreDb || !currentUserEmail) return;
+    fsApi.addDoc(fsApi.collection(firestoreDb, "activity_log"), {
+      at: new Date().toISOString(), by: currentUserEmail, tool: "Coffee Pickup Schedule", summary: summary
+    }).catch(function (e) { console.error("activity log failed", e); });
+  }
 
   var PEOPLE = ["Danny K", "Danny H", "Josh K", "Michelle C", "Joel C", "Caitlin K", "Ernie J", "Randy K"];
 
@@ -231,6 +240,7 @@
       sel.addEventListener("change", function () {
         var row = rows.find(function (r) { return r.date === sel.dataset.date; });
         if (row) row.assignee = sel.value;
+        changedDates[sel.dataset.date] = true;
         renderTally();
         setSaveIndicator("unsaved");
       });
@@ -266,8 +276,19 @@
       setSaveIndicator("saved");
       return;
     }
-    fsApi.setDoc(fsApi.doc(firestoreDb, "coffee_pickup", "schedule"), { rows: rows, updatedAt: new Date().toISOString() })
-      .then(function () { setSaveIndicator("saved"); })
+    var changedList = Object.keys(changedDates);
+    var summary = changedList.length
+      ? changedList.map(function (d) {
+          var row = rows.find(function (r) { return r.date === d; });
+          return row ? (row.label + " (" + d + ") → " + row.assignee) : d;
+        }).join(", ")
+      : "Saved schedule (no row changes detected)";
+    fsApi.setDoc(fsApi.doc(firestoreDb, "coffee_pickup", "schedule"), { rows: rows, updatedAt: new Date().toISOString(), editedBy: currentUserEmail })
+      .then(function () {
+        setSaveIndicator("saved");
+        logActivity(summary);
+        changedDates = {};
+      })
       .catch(function (e) { console.error("save failed", e); });
   }
 
@@ -286,6 +307,7 @@
         fsApi = firestoreApi;
 
         firestoreDb = firestoreApi.getFirestore(shared.app);
+        currentUserEmail = shared.auth.currentUser && shared.auth.currentUser.email;
         var docRef = firestoreApi.doc(firestoreDb, "coffee_pickup", "schedule");
 
         firestoreApi.getDoc(docRef).then(function (snap) {
