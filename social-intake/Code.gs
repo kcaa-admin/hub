@@ -50,6 +50,7 @@ function processInbox() {
   var root = getRootFolder_();
   var query = 'in:inbox -in:sent -in:spam -in:trash newer_than:14d -label:"' + CONFIG.PROCESSED_LABEL + '"';
   var threads = GmailApp.search(query, 0, CONFIG.MAX_THREADS_PER_RUN);
+  console.log('processInbox: ' + threads.length + ' thread(s) matched: ' + query);
 
   threads.forEach(function (thread) {
     try {
@@ -63,6 +64,20 @@ function processInbox() {
       thread.addLabel(errored);
       thread.addLabel(processed); // don't retry forever; a person can look at the Error label
     }
+  });
+}
+
+/** Diagnostic: run by hand, then read the Execution log. Changes nothing. */
+function debugSearch() {
+  console.log('Running as: ' + Session.getActiveUser().getEmail());
+  ['in:inbox', 'in:anywhere newer_than:14d', 'in:inbox -label:"' + CONFIG.PROCESSED_LABEL + '"'].forEach(function (q) {
+    var found = GmailApp.search(q, 0, 10);
+    console.log('"' + q + '" -> ' + found.length + ' thread(s)');
+    found.forEach(function (t) {
+      console.log('   ' + t.getFirstMessageSubject() + ' | labels: ' +
+        t.getLabels().map(function (l) { return l.getName(); }).join(', ') +
+        ' | from: ' + t.getMessages()[0].getFrom());
+    });
   });
 }
 
