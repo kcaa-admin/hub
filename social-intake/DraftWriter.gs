@@ -24,7 +24,7 @@
  * INSTALL (signed in as info@kcaa.ca):
  *   1. script.google.com -> New project -> paste this file over Code.gs
  *   2. Project Settings -> tick "Show appsscript.json manifest file in editor",
- *      then replace appsscript.json with the one in this folder
+ *      then replace its contents with DraftWriter.appsscript.json from this folder
  *      (adds the Firestore + Drive scopes).
  *   3. Select "setup" and click Run; approve permissions.
  *   4. Done: setup creates the Drive folders and a trigger that runs
