@@ -214,6 +214,7 @@
         <h2 style="border:none;padding:0;margin:0;flex:1;">Editing &mdash; <span id="editingDateLabel"></span></h2>
         <span class="save-indicator" id="saveIndicator"></span>
         <button class="btn small ghost danger" id="deleteMeetingBtn" style="display:none;">Delete meeting</button>
+        <button class="btn small primary" id="finalizeTopBtn">Save &amp; finalize</button>
         <button class="btn small ghost" id="closeEditorBtn">Close</button>
       </div>
 
@@ -268,7 +269,11 @@
           <div class="form-field full"><label for="f_nm_objectives">Objectives</label><input type="text" id="f_nm_objectives"></div>
         </div>
       </div>
-    </section>
+
+      <div class="card-actions" style="margin-top:20px;">
+        <button class="btn primary" id="finalizeBtn">Save &amp; finalize</button>
+        <button class="btn" id="saveDraftBtn">Save draft &amp; close</button>
+      </div>
   </div>
 
   <footer>KCAA internal &middot; board meeting minutes v1.0 &middot; part of the <a href="index.html" style="color:var(--ink-faint)">KCAA Hub</a></footer>
@@ -864,7 +869,10 @@
   });
 
   document.getElementById("newMeetingBtn").addEventListener("click", startNewMeeting);
-  document.getElementById("closeEditorBtn").addEventListener("click", closeEditor);
+  document.getElementById("closeEditorBtn").addEventListener("click", function () {
+    if (draft && document.getElementById("saveIndicator").classList.contains("saving")) doSave(); // flush pending autosave
+    closeEditor();
+  });
   document.getElementById("deleteMeetingBtn").addEventListener("click", function () {
     if (draftId) deleteMeeting(draftId);
   });
@@ -892,8 +900,10 @@
     saveTimer = setTimeout(doSave, 600);
   }
 
-  function doSave() {
+  function doSave(onDone) {
+    if (typeof onDone !== "function") onDone = null;
     if (!draft) return;
+    clearTimeout(saveTimer);
     draft.updatedAt = new Date().toISOString();
     draft.editedBy = currentUserEmail;
     var payload = JSON.parse(JSON.stringify(draft));
@@ -910,7 +920,15 @@
       renderArchive();
       setSaveIndicator("saved");
       document.getElementById("deleteMeetingBtn").style.display = "";
+      if (onDone) onDone();
       return;
+    }
+
+    function failed(e) {
+      console.error("save failed", e);
+      setSaveIndicator("");
+      document.getElementById("saveIndicator").textContent = "Save failed — try again";
+      if (onDone) window.alert("Couldn't save the minutes. Check your connection and try again.");
     }
 
     if (!draftId) {
@@ -919,14 +937,32 @@
         setSaveIndicator("saved");
         document.getElementById("deleteMeetingBtn").style.display = "";
         logActivity("Created minutes for " + dateLabel);
-      }).catch(function (e) { console.error("create failed", e); });
+        if (onDone) onDone();
+      }).catch(failed);
     } else {
       fsApi.setDoc(fsApi.doc(firestoreDb, "meeting_minutes", draftId), payload).then(function () {
         setSaveIndicator("saved");
         logActivity("Updated minutes for " + dateLabel);
-      }).catch(function (e) { console.error("save failed", e); });
+        if (onDone) onDone();
+      }).catch(failed);
     }
   }
+
+  function saveAndClose(finalize) {
+    if (!draft) return;
+    if (!draft.date) { window.alert("Please set the meeting date before saving."); return; }
+    if (finalize) {
+      draft.status = "final";
+      document.getElementById("f_status").value = "final";
+    }
+    doSave(function () {
+      closeEditor();
+      switchTab("archive");
+    });
+  }
+  document.getElementById("finalizeBtn").addEventListener("click", function () { saveAndClose(true); });
+  document.getElementById("finalizeTopBtn").addEventListener("click", function () { saveAndClose(true); });
+  document.getElementById("saveDraftBtn").addEventListener("click", function () { saveAndClose(false); });
 
   function deleteMeeting(id) {
     var m = meetings.find(function (x) { return x.id === id; });
