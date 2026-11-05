@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Volunteer Photo Poster</title>
+<meta name="description" content="Printable rink poster asking families and volunteers to email session photos and videos to KCAA social media.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=IBM+Plex+Sans:wght@400;600;700&family=IBM+Plex+Sans+KR:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Brand guide tokens (sections 05/06/11). The poster itself is a printed
+     paper piece, so it stays on the light palette in every theme. */
+  :root {
+    --bg: #f3f5f7; --surface: #ffffff; --ink: #0a0a0a; --ink-soft: #565f68; --ink-faint: #889198;
+    --line: #dde2e6; --red: #d01048; --red-soft: #fbe6ec; --blue: #3090d8; --blue-soft: #e6f2fb;
+    --paper: #ffffff; --black: #000000;
+    --shadow: 0 1px 2px rgba(10,10,10,0.04), 0 8px 24px -14px rgba(10,10,10,0.16);
+    --display: "Poppins", -apple-system, "Segoe UI", sans-serif;
+    --body: "IBM Plex Sans", "IBM Plex Sans KR", -apple-system, "Segoe UI", sans-serif;
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] { --bg: #101214; --ink-soft: #b4bac0; --line: #2c2f33; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #101214; --ink-soft: #b4bac0; --line: #2c2f33; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, "Segoe UI", ui-sans-serif, system-ui, sans-serif; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+
+  .toolbar { max-width: 8.5in; margin: 0 auto; padding: 20px 16px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .back-nav { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--ink-soft); text-decoration: none; padding: 10px 4px; }
+  .back-nav:hover, .back-nav:focus-visible { color: var(--blue); }
+  .btn { font: inherit; font-size: 13.5px; font-weight: 700; padding: 9px 16px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; background: var(--blue); color: #fff; }
+  .btn:hover, .btn:focus-visible { background: color-mix(in srgb, var(--blue) 85%, black); }
+
+  /* ---- the poster: US Letter, 8.5 x 11 ---- */
+  .sheet-wrap { padding: 0 16px 60px; }
+  .sheet {
+    width: 8.5in; height: 11in; margin: 0 auto; background: var(--paper); color: var(--black);
+    box-shadow: var(--shadow); position: relative; overflow: hidden;
+    padding: 0.6in 0.65in 0.5in; display: flex; flex-direction: column;
+    font-family: var(--body);
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  /* Fit the sheet to small screens without reflowing it. */
+  @media screen and (max-width: 860px) {
+    .sheet-wrap { overflow: hidden; }
+    .sheet { transform-origin: top left; }
+  }
+
+  /* Logo: full lockup, well above the 160px floor; clear space = 3.74% of its width. */
+  .logo { width: 2.5in; height: auto; display: block; margin: 0.093in 0 0.18in; }
+
+  .pill { display: inline-block; align-self: flex-start; background: var(--red); color: #fff; font-family: var(--body); font-size: 12pt; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 14px; border-radius: 999px; margin-bottom: 14px; }
+  .headline { font-family: var(--display); font-weight: 800; font-size: 44pt; line-height: 1.02; letter-spacing: -0.015em; margin: 0 0 12px; }
+  .lede { font-size: 14.5pt; line-height: 1.35; color: #2b2f33; margin: 0; max-width: 6.2in; }
+  .lede-kr { word-break: keep-all; font-family: "IBM Plex Sans KR", var(--body); font-size: 13.5pt; color: #565f68; margin: 6px 0 0; }
+
+  .qr-row { flex: 1 1 auto; display: flex; align-items: center; gap: 0.4in; margin: 0.16in 0 0.16in; }
+  .qr-frame { flex: 0 0 auto; width: 3.3in; padding: 0.16in; border: 6px solid var(--blue); border-radius: 22px; background: #fff; }
+  .qr-frame svg { display: block; width: 100%; height: auto; }
+  .qr-url { text-align: center; font-size: 9.5pt; color: #565f68; margin-top: 6px; word-break: break-all; }
+
+  .steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.14in; }
+  .steps li { display: flex; gap: 14px; align-items: flex-start; }
+  .steps .n { flex: 0 0 auto; width: 38px; height: 38px; border-radius: 50%; background: var(--black); color: #fff; font-family: var(--display); font-weight: 800; font-size: 17pt; display: flex; align-items: center; justify-content: center; }
+  .steps .t { font-family: var(--display); font-weight: 700; font-size: 14.5pt; line-height: 1.2; }
+  .steps .s { word-break: keep-all; font-size: 10.5pt; color: #565f68; line-height: 1.35; margin-top: 2px; }
+  .steps .kr { font-family: "IBM Plex Sans KR", var(--body); }
+
+  /* CTA bar — same closer as the social templates (brand guide §09). */
+  .cta { background: #fff; border: 2px solid #e4e7ea; border-radius: 18px; padding: 16px 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .cta .l1 { font-weight: 700; font-size: 13pt; color: var(--black); }
+  .cta .l2 { font-size: 10.5pt; color: #565f68; }
+  .cta .email { font-family: var(--display); font-weight: 700; font-size: 14pt; color: var(--red); white-space: nowrap; }
+
+
+  .notes { list-style: none; margin: 0 0 0.16in; padding: 12px 20px; background: var(--blue-soft); border-radius: 14px; display: grid; gap: 6px; }
+  .notes li { font-size: 11.5pt; line-height: 1.3; padding-left: 22px; position: relative; color: #1f2327; }
+  .notes li::before { content: ""; position: absolute; left: 3px; top: 0.45em; width: 8px; height: 8px; border-radius: 50%; background: var(--blue); }
+  .notes .kr { font-family: "IBM Plex Sans KR", var(--body); color: #565f68; font-size: 10pt; }
+  .cta .l2 { max-width: 4.1in; }
+
+  @page { size: letter portrait; margin: 0; }
+  @media print {
+    body { background: #fff; }
+    .toolbar { display: none; }
+    .sheet-wrap { padding: 0; }
+    .sheet { box-shadow: none; margin: 0; transform: none !important; }
+  }
+</style>
+</head>
+<body>
+<div id="kcaa-gate" style="position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;">
+  <form id="kcaa-gate-form" style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 26px;box-shadow:var(--shadow);width:100%;max-width:320px;box-sizing:border-box;font-family:-apple-system,'Segoe UI',ui-sans-serif,system-ui,sans-serif;">
+    <p style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue);margin:0 0 8px;">KCAA Hub</p>
+    <h1 style="font-size:19px;font-weight:800;margin:0 0 16px;color:var(--ink);">Enter password</h1>
+    <input type="password" id="kcaa-gate-pw" autocomplete="current-password" placeholder="Password" style="width:100%;font:inherit;font-size:15px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);margin-bottom:12px;box-sizing:border-box;">
+    <button type="submit" style="width:100%;font:inherit;font-size:14px;font-weight:700;padding:10px 16px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;">Enter</button>
+    <p id="kcaa-gate-err" style="display:none;color:var(--red);font-size:13px;margin:12px 0 0;">Incorrect password &mdash; try again.</p>
+  </form>
+</div>
+<script src="gate.js"></script>
+
+<div class="toolbar">
+  <a class="back-nav" href="social-media-posts.html"><span class="arrow">&larr;</span> Back to Social Media Posts</a>
+  <button type="button" class="btn" onclick="window.print()">Print poster</button>
+</div>
+
+<div class="sheet-wrap" id="sheetWrap">
+  <div class="sheet" id="sheet">
+    <img class="logo" src="Assets/FINAL-KCAA-CORE-Logo-RGB.png" alt="KCAA">
+
+    <span class="pill">Saturday sessions</span>
+    <h1 class="headline">Got great<br>photos?</h1>
+    <p class="lede">Send your shots from Learn 2 Skate and Hockey &mdash; they could be featured on KCAA&rsquo;s Instagram.</p>
+    <p class="lede-kr">KCAA 세션에서 찍은 사진과 영상을 보내 주세요. 인스타그램에 소개될 수 있습니다.</p>
+
+    <div class="qr-row">
+      <div>
+        <div class="qr-frame" id="qr"></div>
+        <div class="qr-url" id="qrUrl"></div>
+      </div>
+      <ol class="steps">
+        <li><span class="n">1</span><div><div class="t">Scan the code</div><div class="s">It opens an email already addressed to us &mdash; or write to social@kcaa.ca.<br><span class="kr">QR 코드를 스캔하거나 social@kcaa.ca로 보내세요.</span></div></div></li>
+        <li><span class="n">2</span><div><div class="t">Add the event and date</div><div class="s">In the subject, like &ldquo;Learn 2 Skate &ndash; Nov 8.&rdquo;<br><span class="kr">제목에 행사 이름과 날짜를 적어 주세요.</span></div></div></li>
+        <li><span class="n">3</span><div><div class="t">Attach and send</div><div class="s">Add a line about what happened. Big video? Share a Google Drive link.<br><span class="kr">사진을 첨부하고 한두 줄로 설명해 주세요.</span></div></div></li>
+      </ol>
+    </div>
+
+    <ul class="notes">
+      <li>Please don&rsquo;t include children&rsquo;s names in your message.</li>
+      <li>Only send photos and videos you took yourself.</li>
+      <li>A KCAA board member reviews every post before it goes up, so we can&rsquo;t post everything.</li>
+    </ul>
+
+    <div class="cta">
+      <div>
+        <div class="l1">Thank you for helping tell KCAA&rsquo;s story.</div>
+        <div class="l2">By sending photos you confirm they&rsquo;re from KCAA events and that KCAA may use them.</div>
+      </div>
+      <div class="email">social@kcaa.ca</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+(function () {
+  "use strict";
+  // Scanning opens a new email to social@ with the subject started for the sender.
+  var MAIL = "mailto:social@kcaa.ca?subject=" + encodeURIComponent("Event name - date");
+
+  var qr = qrcode(0, "Q"); // Q = 25% error correction, survives a scuffed/laminated print
+  qr.addData(MAIL);
+  qr.make();
+  document.getElementById("qr").innerHTML = qr.createSvgTag({ cellSize: 8, margin: 0, scalable: true });
+  document.getElementById("qrUrl").textContent = "Scan to email social@kcaa.ca";
+
+  // Scale the fixed-size sheet down to fit narrow screens (print is unaffected).
+  function fit() {
+    var wrap = document.getElementById("sheetWrap"), sheet = document.getElementById("sheet");
+    var avail = wrap.clientWidth - 32, full = sheet.offsetWidth;
+    if (avail > 0 && avail < full) {
+      var k = avail / full;
+      sheet.style.transform = "scale(" + k + ")";
+      wrap.style.height = (sheet.offsetHeight * k + 60) + "px";
+    } else {
+      sheet.style.transform = "";
+      wrap.style.height = "";
+    }
+  }
+  window.addEventListener("resize", fit);
+  window.addEventListener("load", fit);
+  fit();
+})();
+</script>
+</body>
+</html>
