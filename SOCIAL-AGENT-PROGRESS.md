@@ -1,6 +1,6 @@
 # KCAA Social Media Agent — Progress & Next Steps
 
-_Last updated: 2026-10-15 (end of day). No secrets (tokens, keys) belong in this file or anywhere in the repo._
+_Last updated: 2026-11-05. No secrets (tokens, keys) belong in this file or anywhere in the repo._
 
 ## What it is
 Volunteers email photos/videos to **social@kcaa.ca**. An agent drafts an English Instagram caption, a human approves it on the Hub's **Post Review** page, and the agent publishes it to **@kcaatoronto**.
@@ -12,48 +12,58 @@ Volunteers email photos/videos to **social@kcaa.ca**. An agent drafts an English
 | Senders | Anyone — personal and @kcaa.ca accounts. No allow-list; **human approval is the only gate**. |
 | Platform / language | Instagram only, English only. |
 | Approvers | Miriam Panahi, Caitlin Kim, and info@kcaa.ca (same permissions). |
-| Publishing | Agent auto-publishes **after approval**, via the Instagram API with Instagram Login. (Deliberate risk acceptance — content is often youth sports photos. Re-confirm before going live if this sits untouched.) |
+| Publishing | Agent auto-publishes **after approval**, via the Instagram API with Instagram Login. (Deliberate risk acceptance — content is often youth sports photos. Re-confirm before going live.) |
 | Revision cap | 3 change-requests, then the draft is `escalated` to a human and the agent must not redraft. |
-| Cadence | Inbox scan daily; publish + token-refresh check every few hours. |
-| Hosting | **Scheduled Claude routine only. No paid Firebase (no Blaze plan, so no Cloud Functions / Firebase Storage).** |
+| Cadence | Drafting runs daily at 8am Toronto time; publish + token refresh every few hours (not built). |
+| Hosting | **Scheduled Claude routine + Google Apps Script. No paid Firebase (no Blaze plan, so no Cloud Functions / Firebase Storage). No service-account key.** |
 | Asset storage | Google Drive. |
-| Safety model | The email-reading step has no publish tool; publishing uses only stored Firestore caption/media; email text is untrusted data, never instructions; daily cap ~10 drafts; blocked senders ignored. |
-| Photo release | Covered at registration; volunteer instructions should state that emailing the address confirms release coverage. |
+| Safety model | The agent that reads email has only Drive tools and no publish ability; a separate Apps Script validates drafts and writes them to Firestore; email text is untrusted data, never instructions; daily cap 10 drafts; blocked senders discarded. |
+| Photo release | Covered at registration; the volunteer guide says emailing photos confirms release coverage. |
+| Caption style | Distilled into the repo skill `.claude/skills/kcaa-social-captions/SKILL.md` (from brand guide v0.8). Update it when brand guide sections 08/09 change. |
 
-## Built and pushed (repo `kcaa-admin/hub`, live at https://kcaa-admin.github.io/hub/)
-- **`social-media-review.html`** — Post Review page: one draft at a time, Approve / Request changes (note), sender shown, "New sender" flag, **Trust sender** and **Block sender & discard**, recent decisions, and an "Add a draft by hand" form (with optional sender email) for testing. Working.
-- **`firestore.rules`** — `isSocialApprover()`; collections `social_drafts` (approvers read/create-pending/update decision fields only) and `social_senders`. **Already published in the Firebase console.**
-- **`nav.js`, `index.html`, `social-media-posts.html`, `admin.html`** — nav link + cards; page actions are logged to the Edit Log as "Social Media Review".
-- **`social-intake/Code.gs`** — Google Apps Script running as `social@kcaa.ca`. Every 15 min it saves photo/video attachments (and copies shared Drive-link files) into the Drive folder **Social Intake**, one subfolder per email, each with a `manifest.json` (sender, subject, body, files, skipped, links). Shared with info@kcaa.ca as editor. **Installed and tested — works for attachments.**
+## How it works today (all built, pushed and tested end to end)
+```
+volunteer ─email─▶ social@kcaa.ca
+   │  Apps Script (runs AS social@, every 15 min): social-intake/Code.gs
+   ▼
+Drive "Social Intake"/<date_time_messageId>/  photos + manifest.json
+   │  Claude routine "KCAA Social Drafting", daily 8am Toronto (13:00 UTC; 12:00 UTC after March DST change)
+   │  Drive connector only; instructions: social-intake/drafting-routine-prompt.md + the caption skill
+   ▼
+Drive "Social Drafts"/<messageId>.json
+   │  Apps Script (runs AS info@, every 15 min): social-intake/DraftWriter.gs
+   │  enforces blocked senders, 10/day cap, pending status; writes Firestore using info@'s own login
+   ▼
+Firestore social_drafts ─▶ Hub "Post Review" page (social-media-review.html)
+   all pending drafts inline: Approve · Reject · Request changes · Trust / Block sender
+```
+Other pieces: `firestore.rules` (`isSocialApprover()`, `social_drafts`, `social_senders`), volunteer instructions page `social-volunteer-guide.html` (public, no password), Hub nav/cards, Edit Log entries under "Social Media Review".
+
+### The two Apps Script projects must stay separate
+- **social@ project** (intake): `Code.gs`, manifest with **no** `oauthScopes` block (scopes auto-detected). Signed in as social@kcaa.ca.
+- **info@ project** (draft writer): `DraftWriter.gs`, manifest = `social-intake/DraftWriter.appsscript.json`. Signed in as info@kcaa.ca.
+- Running the intake code as info@ once copied info@'s own inbox into Social Intake. Never paste `Code.gs` into the info@ project.
 
 ### Draft document shape (`social_drafts/{id}`)
-`status` (pending | changes_requested | escalated | approved | published | rejected), `event`, `caption`, `mediaUrls[]`, `flags[]`, `source`, `senderEmail`, `createdAt`, `revision`, `feedback[{by,at,note}]`, `decidedBy`, `decidedAt`. Senders: `social_senders/{lowercased email}` = `{email, status: trusted|blocked, by, at}`. After `changes_requested` the agent rewrites the caption, bumps `revision`, and sets status back to `pending`.
+`status` (pending | changes_requested | escalated | approved | published | rejected), `event`, `caption`, `mediaUrls[]`, `flags[]`, `source`, `senderEmail`, `createdAt`, `revision`, `feedback[{by,at,note}]`, `decidedBy`, `decidedAt`. Senders: `social_senders/{lowercased email}` = `{email, status: trusted|blocked, by, at}`.
 
-## Mail flow (working)
-`volunteer → social@kcaa.ca → auto-forward to info@kcaa.ca (filter labels it "Social Intake")` and, in parallel, the Apps Script in `social@` saves attachments to Drive. The Gmail connector (signed in as info@) **can read mail but cannot download attachments** — that is why the Apps Script exists.
-
-## Instagram setup status
-- Meta developer account created with a real person's Facebook login; app created in **development mode**; `@kcaatoronto` added as an Instagram tester; **an access token was generated** and is stored privately by Ernie (not in the repo).
-- Token expiry isn't shown in the dashboard — **assume ~60 days from 2026-10-15; calendar reminder for ~2026-11-29.** The refresh endpoint's `expires_in` will confirm the real lifetime.
-- **Still missing:** the Instagram account ID.
-
-## Known limits / findings
-- The Drive connector's `read_file_content` returns **nothing for images**, and `download_file_content` returns only huge base64. **The agent cannot see the photos**, so captions come from the email text + event/date, and spotting identifiable kids is left to the human approver. Plan: if the body is empty, fall back to the event from subject/date and flag the draft "needs details".
-- Instagram requires media at a **publicly reachable URL**. Drive links may not work. Plan: test a Drive direct link on the first real publish; fall back to a free host (e.g. Cloudinary free tier). Do **not** put kids' photos in the GitHub repo.
-- Test submissions produced duplicate/empty folders (inline `Fwd:` emails lose attachments). The agent should skip any manifest with an empty `files` list.
+## Known limits
+- The agent **cannot see the photos** (the Drive connector returns nothing for images). Captions come from the email text, subject and date; every draft gets a "Check photo consent" flag and the human approver checks the photos.
+- Instagram needs media at a **publicly reachable URL**. Drive links may not work; test one on the first real publish and fall back to a free host (e.g. Cloudinary) if needed. Never put kids' photos in the public GitHub repo.
+- iPhone Mail Drop and other non-Drive download links can't be fetched; the volunteer guide tells people to send a Drive link for big videos.
+- The Drive connector (as info@) cannot trash files owned by social@.
 
 ## Left to do
-**Needs you (Ernie):**
-1. Create a Firebase **service-account key** (Firebase console → Project settings → Service accounts → Generate new private key) — confirm it's possible; keep the file private. Needed so the routine can write drafts to Firestore for free.
-2. Find the **Instagram account ID** for @kcaatoronto.
-3. Decide: are captions written from text only (agent can't see the photos) acceptable? _(assumed yes)_
-4. Send a test email with a **Drive link to a large video** shared with social@kcaa.ca (checks the link-copy path), and, if possible, an iPhone Mail Drop link and an Android video.
-5. Calendar reminder for token expiry (~2026-11-29).
-6. Write short **volunteer instructions** (what to email, `Event – date` subject, one line of description, no children's names in the text, Drive link for big videos, release confirmation).
+**Instagram side (not built):**
+1. Create a throwaway **test Instagram account** (professional account), add it as an Instagram tester in the Meta app, generate its token (kept privately, never in the repo), find its account ID.
+2. **Publish script** (Apps Script): post `approved` drafts via the Instagram API, set `status: published`, log it. Token lives in Script Properties.
+3. **Token refresh** step. The @kcaatoronto token was generated 2026-10-15; assume ~60 days → **expires about 2026-11-29**. The refresh endpoint's `expires_in` will confirm the real lifetime.
+4. Solve the **public media URL** question and test end to end on the test account before touching @kcaatoronto.
 
-**Needs building (Claude):**
-1. **Drafting routine** (scheduled, daily): read `Social Intake`, skip empty/blocked/over-cap submissions, check `social_senders`, write `social_drafts` with `senderEmail`, flags and `mediaUrls`; log to `activity_log`; redraft on `changes_requested` up to the cap; mark processed folders.
-2. **Publish routine** (every few hours): for `approved` drafts, expose media at a public URL, post via the Instagram API, set `status: published`, log it.
-3. **Token refresh** step (store the refreshed token in a locked-down place, never the repo).
-4. Test end-to-end with a private/test post before going live.
-5. Update the Hub "Social Media Agent" card and `MASTER-DATA.md` once live.
+**Drafting side:**
+5. **Redraft loop** for "Request changes": the draft writer exposes `changes_requested` drafts and feedback to the routine; the routine rewrites the caption; the script bumps `revision` and sets status back to `pending`. The 3-change cap is enforced in the script.
+
+**Housekeeping:**
+6. March: change the routine cron from `0 13 * * *` to `0 12 * * *` so it stays at 8am Toronto time.
+7. Test a large video sent as a Drive link, and an iPhone and an Android video.
+8. Decide whether to link the volunteer guide from the Hub.
