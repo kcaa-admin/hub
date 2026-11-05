@@ -174,7 +174,12 @@ function extractEmail_(from) {
 function getRootFolder_() {
   var it = DriveApp.getFoldersByName(CONFIG.ROOT_FOLDER_NAME);
   var folder = it.hasNext() ? it.next() : DriveApp.createFolder(CONFIG.ROOT_FOLDER_NAME);
-  folder.addEditor(CONFIG.SHARE_WITH); // editor so info@ (the agent) can archive/move processed folders
+  // Editor so info@ (the agent) can archive/move processed folders. Only share if not already
+  // shared: re-adding on every 15-minute run can send info@ a Drive notification each time.
+  var already = folder.getEditors().some(function (u) {
+    return u.getEmail().toLowerCase() === CONFIG.SHARE_WITH.toLowerCase();
+  });
+  if (!already) folder.addEditor(CONFIG.SHARE_WITH);
   return folder;
 }
 
