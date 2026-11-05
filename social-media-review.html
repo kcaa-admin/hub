@@ -64,6 +64,7 @@
   .btn.small { font-size: 12.5px; padding: 6px 12px; }
 
   /* --- draft card --- */
+  .draft + .draft { margin-top: 22px; }
   .draft { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
   .draft-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
   .draft-title { font-size: 15px; font-weight: 800; flex: 1 1 auto; }
@@ -143,7 +144,7 @@
 
   <div id="app" style="display:none;">
     <section class="block">
-      <h2>Next up <span class="h2-note" id="queueNote"></span></h2>
+      <h2>Awaiting review <span class="h2-note" id="queueNote"></span></h2>
       <div id="current"></div>
     </section>
 
@@ -247,12 +248,29 @@
     var decided = drafts.filter(function (d) { return d.status !== "pending"; });
 
     var cur = document.getElementById("current");
-    document.getElementById("queueNote").textContent = pending.length > 1 ? (pending.length - 1) + " more waiting" : "";
+    document.getElementById("queueNote").textContent = pending.length ? pending.length + " awaiting review" : "";
+
+    // Keep half-typed change requests when another draft updates and the list re-renders.
+    var kept = {};
+    cur.querySelectorAll(".draft[data-id]").forEach(function (card) {
+      var t = card.querySelector('[data-role="changeNote"]');
+      var b = card.querySelector('[data-role="changeBox"]');
+      if (t && t.value) kept[card.getAttribute("data-id")] = { text: t.value, open: b.classList.contains("show") };
+    });
+
     if (!pending.length) {
       cur.innerHTML = '<div class="empty-state">No drafts waiting for review. 🎉</div>';
     } else {
-      cur.innerHTML = draftHtml(pending[0]);
-      wireDraft(pending[0]);
+      cur.innerHTML = pending.map(draftHtml).join("");
+      pending.forEach(function (d) {
+        var card = cur.querySelector('.draft[data-id="' + d.id.replace(/"/g, "") + '"]');
+        if (!card) return;
+        if (kept[d.id]) {
+          card.querySelector('[data-role="changeNote"]').value = kept[d.id].text;
+          if (kept[d.id].open) card.querySelector('[data-role="changeBox"]').classList.add("show");
+        }
+        wireDraft(d, card);
+      });
     }
 
     var list = document.getElementById("recentList");
@@ -281,35 +299,36 @@
       var trusted = senders[sender] === "trusted";
       senderRow = '<div class="sender-row"><span>From</span><span class="addr">' + esc(sender) + "</span>" +
         (trusted ? '<span class="pill trusted">Trusted sender</span>'
-                 : '<span class="pill new-sender">New sender — not yet trusted</span><button type="button" class="btn link" id="trustBtn">Trust this sender</button>') +
-        '<button type="button" class="btn link danger" id="blockBtn">Block sender &amp; discard</button></div>';
+                 : '<span class="pill new-sender">New sender — not yet trusted</span><button type="button" class="btn link" data-role="trustBtn">Trust this sender</button>') +
+        '<button type="button" class="btn link danger" data-role="blockBtn">Block sender &amp; discard</button></div>';
     }
     return '<div class="draft" data-id="' + esc(d.id) + '">' +
       '<div class="draft-head"><span class="draft-title">' + esc(d.event) + '</span><span class="pill pending">Awaiting review</span></div>' +
       '<div class="draft-body">' + senderRow + flags + mediaHtml(d.mediaUrls) +
         '<div class="field-label">Instagram caption</div><div class="caption">' + esc(d.caption) + "</div>" +
         (d.source ? '<p class="meta">Source: ' + esc(d.source) + "</p>" : "") + hist +
-        '<div class="actions"><button type="button" class="btn approve" id="approveBtn">Approve &amp; publish</button>' +
-        '<button type="button" class="btn changes" id="changesBtn">Request changes</button>' +
-        '<button type="button" class="btn reject" id="rejectBtn">Reject</button></div>' +
-        '<div class="change-box" id="changeBox"><textarea id="changeNote" maxlength="1000" placeholder="What should change?"></textarea>' +
-        '<button type="button" class="btn primary small" id="sendChangesBtn">' + (last ? "Send &amp; escalate to a human" : "Send to agent") + "</button></div>" +
+        '<div class="actions"><button type="button" class="btn approve" data-role="approveBtn">Approve &amp; publish</button>' +
+        '<button type="button" class="btn changes" data-role="changesBtn">Request changes</button>' +
+        '<button type="button" class="btn reject" data-role="rejectBtn">Reject</button></div>' +
+        '<div class="change-box" data-role="changeBox"><textarea data-role="changeNote" maxlength="1000" placeholder="What should change?"></textarea>' +
+        '<button type="button" class="btn primary small" data-role="sendChangesBtn">' + (last ? "Send &amp; escalate to a human" : "Send to agent") + "</button></div>" +
         '<p class="rev-note">Change request ' + Math.min(rounds + 1, MAX_CHANGE_REQUESTS) + " of " + MAX_CHANGE_REQUESTS + " allowed" +
         (last ? " — this is the last one; the agent will not redraft after it." : "") + "</p>" +
       "</div></div>";
   }
 
-  function wireDraft(d) {
-    var approve = document.getElementById("approveBtn");
-    var changes = document.getElementById("changesBtn");
-    var reject = document.getElementById("rejectBtn");
-    var box = document.getElementById("changeBox");
-    var send = document.getElementById("sendChangesBtn");
-    var note = document.getElementById("changeNote");
+  function wireDraft(d, card) {
+    function role(r) { return card.querySelector('[data-role="' + r + '"]'); }
+    var approve = role("approveBtn");
+    var changes = role("changesBtn");
+    var reject = role("rejectBtn");
+    var box = role("changeBox");
+    var send = role("sendChangesBtn");
+    var note = role("changeNote");
     changes.addEventListener("click", function () { box.classList.toggle("show"); if (box.classList.contains("show")) note.focus(); });
 
-    var trustBtn = document.getElementById("trustBtn");
-    var blockBtn = document.getElementById("blockBtn");
+    var trustBtn = role("trustBtn");
+    var blockBtn = role("blockBtn");
     function busy(on) {
       approve.disabled = changes.disabled = reject.disabled = send.disabled = on;
       if (trustBtn) trustBtn.disabled = on;
