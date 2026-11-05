@@ -36,7 +36,14 @@ Drive "Social Drafts"/<messageId>.json
    ▼
 Firestore social_drafts ─▶ Hub "Post Review" page (social-media-review.html)
    all pending drafts inline: Approve · Reject · Request changes · Trust / Block sender
+
+"Request changes" loop (verified live 2026-11-05):
+Post Review sets status `changes_requested` + note ─▶ DraftWriter.gs (every 15 min) writes a request file to Drive
+"Social Redrafts" ─▶ Claude routine "KCAA Social Redrafts (hourly)" (8am-10pm Toronto; redrafts-only mode of the same
+prompt) writes a reply to "Social Redraft Replies" ─▶ DraftWriter.gs validates it (status, revision, 3-change cap),
+updates only caption/flags, revision + 1, status back to `pending`.
 ```
+Routine ids: drafting trig_01ToyiPAja8m8KhMmnVNgnac, redrafts trig_012jE7eMzxRvQ6BrXeYtE7Px (manage at claude.ai/code/routines).
 Other pieces: `firestore.rules` (`isSocialApprover()`, `social_drafts`, `social_senders`), volunteer instructions page `social-volunteer-guide.html` (public, no password), Hub nav/cards, Edit Log entries under "Social Media Review".
 
 ### The two Apps Script projects must stay separate
@@ -60,10 +67,7 @@ Other pieces: `firestore.rules` (`isSocialApprover()`, `social_drafts`, `social_
 3. **Token refresh** step. The @kcaatoronto token was generated 2026-10-15; assume ~60 days → **expires about 2026-11-29**. The refresh endpoint's `expires_in` will confirm the real lifetime.
 4. Solve the **public media URL** question and test end to end on the test account before touching @kcaatoronto.
 
-**Drafting side:**
-5. **Redraft loop** for "Request changes": the draft writer exposes `changes_requested` drafts and feedback to the routine; the routine rewrites the caption; the script bumps `revision` and sets status back to `pending`. The 3-change cap is enforced in the script.
-
 **Housekeeping:**
-6. March: change the routine cron from `0 13 * * *` to `0 12 * * *` so it stays at 8am Toronto time.
-7. Test a large video sent as a Drive link, and an iPhone and an Android video.
-8. Decide whether to link the volunteer guide from the Hub.
+5. March (daylight saving): shift both routine crons one hour earlier in UTC: daily drafting `0 13 * * *` → `0 12 * * *`; hourly redrafts `0 13-23,0-2 * * *` → `0 12-23,0-1 * * *`.
+6. Test a large video sent as a Drive link, and an iPhone and an Android video.
+7. Decide whether to link the volunteer guide from the Hub.
