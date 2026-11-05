@@ -27,6 +27,7 @@ var CONFIG = {
   TIMEZONE: 'America/Toronto',
   MAX_THREADS_PER_RUN: 10,
   MAX_FILE_BYTES: 100 * 1024 * 1024,
+  MIN_MEDIA_BYTES: 20 * 1024,
   MAX_BODY_CHARS: 5000
 };
 
@@ -101,10 +102,17 @@ function processMessage_(msg, root) {
     otherLinks: []  // everything else (iCloud Mail Drop, OneDrive...) — not retrievable
   };
 
-  msg.getAttachments({ includeInlineImages: false, includeAttachments: true }).forEach(function (a) {
+  // Inline images are included: photos pasted into the body (common from phones and Gmail
+  // web) arrive as inline parts, not attachments. Tiny images are almost always
+  // signature logos or tracking pixels, so those are skipped.
+  msg.getAttachments({ includeInlineImages: true, includeAttachments: true }).forEach(function (a) {
     var type = a.getContentType();
     if (!isMedia_(type)) {
       manifest.skipped.push({ name: a.getName(), mimeType: type, reason: 'not an image or video' });
+      return;
+    }
+    if (a.getSize() < CONFIG.MIN_MEDIA_BYTES) {
+      manifest.skipped.push({ name: a.getName(), mimeType: type, reason: 'too small (likely a logo or signature image)' });
       return;
     }
     if (a.getSize() > CONFIG.MAX_FILE_BYTES) {
