@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Send Photos to KCAA Social</title>
+<meta name="description" content="How to email event photos and videos to KCAA so they can be featured on Instagram.">
+<style>
+  :root {
+    --bg: #f3f5f7; --surface: #ffffff; --ink: #0a0a0a; --ink-soft: #565f68; --ink-faint: #889198;
+    --line: #dde2e6; --red: #d01048; --red-soft: #fbe6ec; --blue: #3090d8; --blue-soft: #e6f2fb;
+    --green: #2f8a4e; --green-soft: #e6f5ea;
+    --shadow: 0 1px 2px rgba(10,10,10,0.04), 0 8px 24px -14px rgba(10,10,10,0.16);
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    --bg: #101214; --surface: #1a1c1f; --ink: #f1f2f3; --ink-soft: #b4bac0; --ink-faint: #7d848b;
+    --line: #2c2f33; --red: #ef4778; --red-soft: #331a22; --blue: #5cabe6; --blue-soft: #17283a;
+    --green: #43b06a; --green-soft: #17301f;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 30px -14px rgba(0,0,0,0.6);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101214; --surface: #1a1c1f; --ink: #f1f2f3; --ink-soft: #b4bac0; --ink-faint: #7d848b;
+      --line: #2c2f33; --red: #ef4778; --red-soft: #331a22; --blue: #5cabe6; --blue-soft: #17283a;
+      --green: #43b06a; --green-soft: #17301f;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 30px -14px rgba(0,0,0,0.6);
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, "Segoe UI", ui-sans-serif, system-ui, sans-serif; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  .page { max-width: 680px; margin: 0 auto; padding: 32px 20px 80px; }
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue); margin: 0 0 10px; }
+  h1 { font-size: clamp(26px, 5vw, 34px); font-weight: 800; letter-spacing: -0.01em; margin: 0 0 12px; text-wrap: balance; }
+  .lede { font-size: 16px; color: var(--ink-soft); margin: 0 0 28px; }
+  h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-faint); margin: 32px 0 14px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 16px 18px; margin-bottom: 12px; }
+  .card p { margin: 0 0 8px; font-size: 14.5px; }
+  .card p:last-child { margin-bottom: 0; }
+  ol.steps { list-style: none; padding: 0; margin: 0; counter-reset: step; }
+  ol.steps li { counter-increment: step; position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 14px 18px 14px 56px; margin-bottom: 10px; font-size: 14.5px; }
+  ol.steps li::before { content: counter(step); position: absolute; left: 16px; top: 14px; width: 28px; height: 28px; border-radius: 50%; background: var(--blue-soft); color: var(--blue); font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  ol.steps li b { display: block; margin-bottom: 2px; }
+  .addr { font-weight: 800; color: var(--blue); }
+  code { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; font-size: 13px; }
+  .yes, .no { border-radius: 12px; padding: 14px 18px; font-size: 14px; margin-bottom: 12px; }
+  .yes { background: var(--green-soft); border: 1px solid color-mix(in srgb, var(--green) 30%, var(--line)); }
+  .no { background: var(--red-soft); border: 1px solid color-mix(in srgb, var(--red) 30%, var(--line)); }
+  .yes strong { color: var(--green); } .no strong { color: var(--red); }
+  .yes ul, .no ul { margin: 6px 0 0; padding-left: 20px; }
+  .email-box { background: var(--surface); border: 1px dashed var(--line); border-radius: 12px; padding: 14px 18px; font-size: 14px; }
+  .email-box .row { margin-bottom: 6px; } .email-box .k { color: var(--ink-faint); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: block; }
+  footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-faint); }
+</style>
+</head>
+<body>
+<div class="page">
+  <p class="eyebrow">KCAA &middot; Volunteers</p>
+  <h1>Send us your photos and videos</h1>
+  <p class="lede">Got great shots from a KCAA game, clinic or event? Email them to us and they could be featured on our Instagram. It takes two minutes.</p>
+
+  <h2>How to send</h2>
+  <ol class="steps">
+    <li><b>Email <span class="addr">social@kcaa.ca</span></b>Attach your best 3&ndash;10 photos or short videos.</li>
+    <li><b>Put the event and date in the subject</b>Like this: <code>Learn to Skate &ndash; Nov 8</code> or <code>Hockey game vs. Scarborough &ndash; Oct 25</code></li>
+    <li><b>Add one or two lines about what happened</b>For example: &ldquo;Great turnout at the Saturday session &mdash; 20 kids learned crossovers.&rdquo; The more we know, the better the caption.</li>
+    <li><b>Big videos? Send a Google Drive link</b>Upload the video to Google Drive, share it with <span class="addr">social@kcaa.ca</span>, and paste the link in your email. (iPhone Mail Drop links and other download links won&rsquo;t work.)</li>
+  </ol>
+
+  <h2>Example email</h2>
+  <div class="email-box">
+    <div class="row"><span class="k">To</span>social@kcaa.ca</div>
+    <div class="row"><span class="k">Subject</span>Learn to Skate &ndash; Nov 8</div>
+    <div class="row"><span class="k">Message</span>Great turnout at the Saturday session &mdash; 20 kids learned crossovers. Photos attached, taken by me.</div>
+  </div>
+
+  <h2>Please keep in mind</h2>
+  <div class="yes"><strong>Do</strong>
+    <ul>
+      <li>Send action shots from real KCAA events &mdash; mid-drill and mid-play beat posed lineups.</li>
+      <li>Send only photos and videos you took yourself, or say who did.</li>
+      <li>One event per email.</li>
+    </ul>
+  </div>
+  <div class="no"><strong>Please don&rsquo;t</strong>
+    <ul>
+      <li>Include children&rsquo;s names in your message.</li>
+      <li>Send photos from events that aren&rsquo;t KCAA&rsquo;s, or other people&rsquo;s photos you don&rsquo;t have permission to share.</li>
+      <li>Expect a reply &mdash; this inbox isn&rsquo;t monitored for questions. For anything else, contact the board.</li>
+    </ul>
+  </div>
+
+  <h2>What happens next</h2>
+  <div class="card">
+    <p>A KCAA board member reviews every post before it goes live, so nothing is published automatically from your email alone. Not every submission will be posted, and we may edit the caption.</p>
+    <p><strong>Photo release:</strong> families agree to KCAA photo and video use when they register. By emailing us photos, you confirm they&rsquo;re from KCAA events and that you&rsquo;re happy for KCAA to use them.</p>
+  </div>
+
+  <footer>KCAA &middot; volunteer-run, community-first.</footer>
+</div>
+</body>
+</html>
