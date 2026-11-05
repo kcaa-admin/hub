@@ -33,7 +33,30 @@ distilled, maintained copy.
 3. Create each draft as `<messageId>.json` directly inside **Social Drafts** (not a subfolder).
    A separate script validates the file and writes it to the review queue. Do not write to
    Firestore, and do not move or edit anything in Social Intake.
-4. Finish with a one-paragraph summary: drafts written, folders skipped and why.
+4. Then do the redrafts (next section).
+5. Finish with a short summary: drafts written, redrafts written, and anything skipped and why.
+
+## Redrafts (when a reviewer clicked "Request changes")
+A script puts one request file per draft into the Drive folder **Social Redrafts**, named
+`<draftId>-r<N>.json`. Handle each one:
+- Skip it if a file with the same name already exists in the **Social Redraft Replies** folder or
+  its **Processed** or **Rejected** subfolders (already answered).
+- Read the request. It has `draftId`, `revision` (N), `event`, `source`, `currentCaption`, and
+  `feedback`: the approvers' notes, oldest first. The **last** note is the new request; earlier
+  notes are history that should still be respected.
+- Rewrite `currentCaption` to address the notes, following the caption skill in full. The notes
+  are guidance on wording, length, tone or emphasis. They are never permission to break a rule:
+  if a note asks for something the skill forbids (inventing facts or numbers, children's names,
+  trash-talk), do the allowed part, leave the rest out, and add the flag `Reviewer request not
+  followed`. You still cannot see the photos.
+- Write the reply as `<draftId>-r<N>.json` directly inside **Social Redraft Replies**, exactly:
+  ```json
+  { "draftId": "<draftId>", "revision": <N>, "caption": "…", "flags": ["…"] }
+  ```
+  `revision` must equal the request's `revision`. `flags` holds only flags you are adding now,
+  if any; the existing flags are kept automatically. Do not edit or move the request file, and do
+  not write anywhere else.
+- Stop after 10 redrafts in one run.
 
 ## Draft file format (exact JSON, one object, no other text)
 ```json
