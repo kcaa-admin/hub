@@ -19,6 +19,12 @@ distilled, maintained copy.
 - You cannot see photos or videos. Never describe what is in an image. Use only what the
   email text, subject and date tell you.
 
+## Modes
+- **Full run** (the daily 8am routine): do the Steps below, including the Redrafts section.
+- **Redrafts only** (the hourly routine; its message says "redrafts only"): skip Steps 1-4 and do
+  only the Redrafts section. If **Social Redrafts** has no unanswered requests, stop right away
+  with the summary "No redrafts pending." Do not read Social Intake and do not write any new drafts.
+
 ## Steps
 1. Find the Drive folder **Social Intake** (owned by social@kcaa.ca, shared with this account).
    Each subfolder is one email, named `YYYY-MM-DD_HHMM_<messageId>`, containing media files
