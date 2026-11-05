@@ -25,7 +25,9 @@ Prefer: "Good news — Learn 2 Skate registration is open two more weeks. Spots 
 - Call to action: only if there is a real thing to point at (Register, RSVP, Link in bio, or
   `📩 info@kcaa.ca`). For a photo recap with nothing to promote, end with a warm line of thanks
   instead. Never invent a registration date, link or price.
-- Sign-off line, when useful: `📩 info@kcaa.ca · 📷 @kcaatoronto · 🌐 www.kcaa.ca`
+- Sign-off line `📩 info@kcaa.ca · 📷 @kcaatoronto · 🌐 www.kcaa.ca`: **only when the caption asks
+  people to do something** (register, volunteer, get in touch). Leave it off thank-you and photo-recap
+  posts.
 - Roughly 40–90 words. Plain text, no markdown. Short paragraphs separated by blank lines.
 - Emoji: lead the hook with one, and use one per line only in a short list or for the contact line,
   as the published posts do. No emoji walls.
