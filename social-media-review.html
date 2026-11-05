@@ -58,6 +58,8 @@
   .btn.approve:hover:not(:disabled), .btn.approve:focus-visible { background: color-mix(in srgb, var(--green) 85%, black); }
   .btn.changes { background: var(--surface); color: var(--ink); border-color: var(--line); }
   .btn.changes:hover:not(:disabled), .btn.changes:focus-visible { border-color: var(--red); color: var(--red); }
+  .btn.reject { background: var(--surface); color: var(--red); border-color: var(--red); }
+  .btn.reject:hover:not(:disabled), .btn.reject:focus-visible { background: var(--red-soft); }
   .btn.primary { background: var(--blue); color: #fff; }
   .btn.small { font-size: 12.5px; padding: 6px 12px; }
 
@@ -288,7 +290,8 @@
         '<div class="field-label">Instagram caption</div><div class="caption">' + esc(d.caption) + "</div>" +
         (d.source ? '<p class="meta">Source: ' + esc(d.source) + "</p>" : "") + hist +
         '<div class="actions"><button type="button" class="btn approve" id="approveBtn">Approve &amp; publish</button>' +
-        '<button type="button" class="btn changes" id="changesBtn">Request changes</button></div>' +
+        '<button type="button" class="btn changes" id="changesBtn">Request changes</button>' +
+        '<button type="button" class="btn reject" id="rejectBtn">Reject</button></div>' +
         '<div class="change-box" id="changeBox"><textarea id="changeNote" maxlength="1000" placeholder="What should change?"></textarea>' +
         '<button type="button" class="btn primary small" id="sendChangesBtn">' + (last ? "Send &amp; escalate to a human" : "Send to agent") + "</button></div>" +
         '<p class="rev-note">Change request ' + Math.min(rounds + 1, MAX_CHANGE_REQUESTS) + " of " + MAX_CHANGE_REQUESTS + " allowed" +
@@ -299,6 +302,7 @@
   function wireDraft(d) {
     var approve = document.getElementById("approveBtn");
     var changes = document.getElementById("changesBtn");
+    var reject = document.getElementById("rejectBtn");
     var box = document.getElementById("changeBox");
     var send = document.getElementById("sendChangesBtn");
     var note = document.getElementById("changeNote");
@@ -307,7 +311,7 @@
     var trustBtn = document.getElementById("trustBtn");
     var blockBtn = document.getElementById("blockBtn");
     function busy(on) {
-      approve.disabled = changes.disabled = send.disabled = on;
+      approve.disabled = changes.disabled = reject.disabled = send.disabled = on;
       if (trustBtn) trustBtn.disabled = on;
       if (blockBtn) blockBtn.disabled = on;
     }
@@ -339,6 +343,15 @@
       fsApi.updateDoc(fsApi.doc(db, "social_drafts", d.id), { status: "approved", decidedBy: me, decidedAt: now })
         .then(function () { logActivity("Approved draft: " + d.event); })
         .catch(function (e) { console.error("approve failed", e); alert("Couldn't save that — please try again."); busy(false); });
+    });
+
+    reject.addEventListener("click", function () {
+      if (!confirm("Reject this draft? It will be discarded and nothing will be published. The sender is not blocked.")) return;
+      busy(true);
+      var now = new Date().toISOString();
+      fsApi.updateDoc(fsApi.doc(db, "social_drafts", d.id), { status: "rejected", decidedBy: me, decidedAt: now })
+        .then(function () { logActivity("Rejected draft: " + d.event); })
+        .catch(function (e) { console.error("reject failed", e); alert("Couldn't save that — please try again."); busy(false); });
     });
 
     send.addEventListener("click", function () {
