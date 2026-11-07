@@ -31,7 +31,7 @@ Drive "Social Intake"/<date_time_messageId>/  photos + manifest.json
    │  Drive connector only; instructions: social-intake/drafting-routine-prompt.md + the caption skill
    ▼
 Drive "Social Drafts"/<messageId>.json
-   │  Apps Script (runs AS info@, every 15 min): social-intake/DraftWriter.gs
+   │  Apps Script project "SocialDraftWriter" (runs AS info@, every 15 min): social-intake/DraftWriter.gs
    │  enforces blocked senders, 10/day cap, pending status; writes Firestore using info@'s own login
    ▼
 Firestore social_drafts ─▶ Hub "Post Review" page (social-media-review.html)
@@ -48,8 +48,8 @@ Other pieces: `firestore.rules` (`isSocialApprover()`, `social_drafts`, `social_
 
 ### The two Apps Script projects must stay separate
 - **social@ project** (intake): `Code.gs`, manifest with **no** `oauthScopes` block (scopes auto-detected). Signed in as social@kcaa.ca.
-- **info@ project** (draft writer): `DraftWriter.gs`, manifest = `social-intake/DraftWriter.appsscript.json`. Signed in as info@kcaa.ca.
-- Running the intake code as info@ once copied info@'s own inbox into Social Intake. Never paste `Code.gs` into the info@ project.
+- **"SocialDraftWriter" project** (draft writer): `DraftWriter.gs`, manifest = `social-intake/DraftWriter.appsscript.json`. Signed in as info@kcaa.ca. Instagram publishing code (`PublishTest.gs` now, the real publisher later) is added to this same project, with the Instagram token in its Script Properties.
+- Running the intake code as info@ once copied info@'s own inbox into Social Intake. Never paste `Code.gs` into the SocialDraftWriter project.
 
 ### Draft document shape (`social_drafts/{id}`)
 `status` (pending | changes_requested | escalated | approved | published | rejected), `event`, `caption`, `mediaUrls[]`, `flags[]`, `source`, `senderEmail`, `createdAt`, `revision`, `feedback[{by,at,note}]`, `decidedBy`, `decidedAt`. Senders: `social_senders/{lowercased email}` = `{email, status: trusted|blocked, by, at}`.

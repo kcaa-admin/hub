@@ -1,5 +1,5 @@
 /**
- * KCAA Social Draft Writer — Google Apps Script, runs AS info@kcaa.ca.
+ * KCAA Social Draft Writer — Google Apps Script project "SocialDraftWriter", runs AS info@kcaa.ca.
  *
  * Why this exists: the drafting routine (a scheduled Claude agent) can read the
  * Social Intake folder and write files to Drive, but it holds no Firebase
@@ -22,7 +22,7 @@
  *     "flags": ["needs details"], "source": "<email subject>", "senderEmail": "a@b.com" }
  *
  * INSTALL (signed in as info@kcaa.ca):
- *   1. script.google.com -> New project -> paste this file over Code.gs
+ *   1. script.google.com -> New project, name it SocialDraftWriter -> paste this file over Code.gs
  *   2. Project Settings -> tick "Show appsscript.json manifest file in editor",
  *      then replace its contents with DraftWriter.appsscript.json from this folder
  *      (adds the Firestore + Drive scopes).
