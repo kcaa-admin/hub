@@ -71,7 +71,10 @@
   .pill { display: inline-flex; align-items: center; font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 9px; border-radius: 999px; background: var(--line); color: var(--ink-soft); white-space: nowrap; }
   .pill.pending { background: var(--blue-soft); color: var(--blue); }
   .pill.approved, .pill.published { background: var(--green-soft); color: var(--green); }
-  .pill.changes_requested, .pill.escalated, .pill.rejected { background: var(--red-soft); color: var(--red); }
+  .pill.changes_requested, .pill.escalated, .pill.rejected, .pill.publish_failed { background: var(--red-soft); color: var(--red); }
+  .pill.publishing { background: var(--blue-soft); color: var(--blue); }
+  .recent-row .what a { color: var(--blue); font-weight: 700; }
+  .recent-row .note { flex: 1 1 100%; font-size: 12.5px; color: var(--red); }
   .draft-body { padding: 18px; }
   .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 18px; }
   .media-item { display: block; position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: var(--bg); text-decoration: none; }
@@ -182,7 +185,7 @@
   social_drafts/{id} document shape (the Social Media Agent writes these with
   the Admin SDK, which bypasses rules; this page only ever updates the
   decision fields):
-    status       "pending" | "changes_requested" | "escalated" | "approved" | "published" | "rejected"
+    status       "pending" | "changes_requested" | "escalated" | "approved" | "publishing" | "published" | "publish_failed" | "rejected"
     event        string
     caption      string (English only)
     mediaUrls    string[] (Google Drive links)
@@ -222,7 +225,7 @@
     return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + " · " +
       d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
   }
-  var STATUS_LABEL = { pending: "Awaiting review", changes_requested: "Changes requested", escalated: "Escalated", approved: "Approved", published: "Published", rejected: "Discarded" };
+  var STATUS_LABEL = { pending: "Awaiting review", changes_requested: "Changes requested", escalated: "Escalated", approved: "Approved, waiting to post", publishing: "Posting…", published: "Posted", publish_failed: "Needs manual posting", rejected: "Discarded" };
 
   function driveId(url) {
     var m = /\/d\/([\w-]+)/.exec(url) || /[?&]id=([\w-]+)/.exec(url);
@@ -283,7 +286,9 @@
       var who = d.status === "changes_requested" && last ? last.by : d.decidedBy;
       return '<div class="recent-row"><span class="when">' + fmtWhen(d.decidedAt || (last && last.at) || d.createdAt) + "</span>" +
         '<span class="pill ' + esc(d.status) + '">' + esc(STATUS_LABEL[d.status] || d.status) + "</span>" +
-        '<span class="what">' + esc(d.event) + (who ? " — " + esc(who) : "") + "</span></div>";
+        '<span class="what">' + esc(d.event) + (who ? " — " + esc(who) : "") +
+          (d.status === "published" && d.igPermalink ? ' · <a href="' + esc(safeUrl(d.igPermalink)) + '" target="_blank" rel="noopener">View post</a>' : "") + "</span>" +
+        (d.status === "publish_failed" && d.publishError ? '<span class="note">' + esc(d.publishError) + "</span>" : "") + "</div>";
     }).join("");
   }
 
@@ -356,7 +361,7 @@
     });
 
     approve.addEventListener("click", function () {
-      if (!confirm("Approve this draft? The agent will publish it to Instagram.")) return;
+      if (!confirm("Approve this draft? It will be posted to Instagram within about 15 minutes (a maximum of 2 posts a day; extras wait for the next day).")) return;
       busy(true);
       var now = new Date().toISOString();
       fsApi.updateDoc(fsApi.doc(db, "social_drafts", d.id), { status: "approved", decidedBy: me, decidedAt: now })
