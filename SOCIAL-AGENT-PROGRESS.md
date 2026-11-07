@@ -36,6 +36,7 @@ Drive "Social Drafts"/<messageId>.json
    ▼
 Firestore social_drafts ─▶ Hub "Post Review" page (social-media-review.html)
    all pending drafts inline: Approve · Reject · Request changes · Trust / Block sender
+   │  approved ─▶ Publisher.gs (SocialDraftWriter project, every 15 min, max 2/day) ─▶ Instagram ─▶ status `published` + link
 
 "Request changes" loop (verified live 2026-11-05):
 Post Review sets status `changes_requested` + note ─▶ DraftWriter.gs (every 15 min) writes a request file to Drive
@@ -60,14 +61,22 @@ Other pieces: `firestore.rules` (`isSocialApprover()`, `social_drafts`, `social_
 - iPhone Mail Drop and other non-Drive download links can't be fetched; the volunteer guide tells people to send a Drive link for big videos.
 - The Drive connector (as info@) cannot trash files owned by social@.
 
+## Instagram publishing (code written and simulated; not yet run live)
+- Test account: `kcaatester` (id 17841463670970237), professional, accepted as an Instagram tester on the Meta app. Token is held privately by the user (Script Properties only).
+- **Verified live 2026-11-07:** Instagram can fetch a photo from a temporarily public Google Drive link (`https://drive.google.com/uc?export=download&id=<fileId>`) and publish it (`PublishTest.gs`).
+- `social-intake/Publisher.gs` (add to the SocialDraftWriter project): every 15 min posts `approved` drafts. Rules: max **2 posts per Toronto day** (oldest approval first, extras wait), **JPEG photos only** (single, or carousel of 2-10, up to 8 MB each); videos/other formats/over-size are marked `publish_failed` with "Needs manual posting"; photos are public only while Instagram downloads them, then restored; checks the token belongs to `IG_USER_ID` (and `IG_USERNAME`) before posting; claims a draft (`publishing`) first and never auto-retries after an Instagram error (no double posts); `PUBLISH_PAUSED=true` script property is the kill switch. Weekly `refreshIgToken` renews the 60-day token and stores it in Script Properties.
+- Draft fields added by the publisher: `publishedAt`, `igMediaId`, `igPermalink`, `publishError`, `failedAt`. Statuses added: `publishing`, `publish_failed`. Post Review shows them (link to the live post; failure reason).
+- Script properties: `IG_ACCESS_TOKEN`, `IG_USER_ID`, `IG_USERNAME` (optional), `PUBLISH_PAUSED`, `IG_TOKEN_REFRESHED_AT` (set by the refresh).
+- **Going live on @kcaatoronto:** generate that account's token, replace `IG_ACCESS_TOKEN`, `IG_USER_ID` and `IG_USERNAME` in Script Properties, run `publisherStatus`, then `setupPublisher`.
+
 ## Left to do
-**Instagram side (not built):**
-1. Create a throwaway **test Instagram account** (professional account), add it as an Instagram tester in the Meta app, generate its token (kept privately, never in the repo), find its account ID.
-2. **Publish script** (Apps Script): post `approved` drafts via the Instagram API, set `status: published`, log it. Token lives in Script Properties.
-3. **Token refresh** step. The @kcaatoronto token was generated 2026-10-15; assume ~60 days → **expires about 2026-11-29**. The refresh endpoint's `expires_in` will confirm the real lifetime.
-4. Solve the **public media URL** question and test end to end on the test account before touching @kcaatoronto.
+**Instagram side:**
+1. Run the publisher against the test account (add `Publisher.gs`, set properties, approve a test draft, run `publisherStatus` then `publishApproved`). Open question: can info@ change sharing on files owned by social@? The first real run answers it.
+2. A way to handle `publish_failed` drafts in the Hub (Retry / Mark posted manually). Needs a `firestore.rules` change; for now the page shows the reason and a person posts by hand.
+3. Go live on @kcaatoronto (see above). The current @kcaatoronto token was generated 2026-10-15 and **expires about 2026-11-29** unless refreshed; `refreshIgToken` must run before then (or generate a new token).
 
 **Housekeeping:**
-5. March (daylight saving): shift both routine crons one hour earlier in UTC: daily drafting `0 13 * * *` → `0 12 * * *`; hourly redrafts `0 13-23,0-2 * * *` → `0 12-23,0-1 * * *`.
-6. Test a large video sent as a Drive link, and an iPhone and an Android video.
-7. Decide whether to link the volunteer guide from the Hub.
+4. March (daylight saving): shift both routine crons one hour earlier in UTC: daily drafting `0 13 * * *` → `0 12 * * *`; hourly redrafts `0 13-23,0-2 * * *` → `0 12-23,0-1 * * *`.
+5. Test a large video sent as a Drive link, and an iPhone and an Android video.
+6. Decide whether to link the volunteer guide from the Hub.
+7. Delete the one-off `PublishTest` file from the SocialDraftWriter project once the publisher works.
